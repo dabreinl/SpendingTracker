@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1 class="app-title">Expense Tracker</h1>
+            <div class="controls-wrapper">
+                <div class="date-selector-wrapper">
+                    <select id="month-selector" aria-label="Select Month"></select>
+                    <select id="year-selector" aria-label="Select Year"></select>
+                </div>
+                <div class="currency-selector-wrapper">
+                    <select id="currency-selector">
+                        <option value="USD" selected>$ USD</option>
+                        <option value="EUR">€ EUR</option>
+                        <option value="GBP">£ GBP</option>
+                        <option value="JPY">¥ JPY</option>
+                    </select>
+                </div>
+                <button id="theme-toggle-btn" class="theme-toggle" aria-label="Toggle theme"></button>
+            </div>
+        </header>
+        <main>
+            <section class="expense-form-container">
+                <div class="form-inputs">
+                    <input type="text" id="expense-name-input" placeholder="Enter expense name (e.g., Coffee)" required>
+                    <input type="number" id="expense-amount-input" placeholder="Amount" min="0.01" step="0.01" required>
+                </div>
+                <div class="form-actions">
+                    <div class="expense-type-chooser">
+                        <input type="radio" id="type-fixed" name="expense-type" value="fixed" checked>
+                        <label for="type-fixed">Fixed</label>
+                        <input type="radio" id="type-variable" name="expense-type" value="variable">
+                        <label for="type-variable">Variable</label>
+                    </div>
+                    <button id="add-expense-btn">Add Expense</button>
+                </div>
+            </section>
+            <div class="costs-display-area">
+                <section id="fixed-costs" class="cost-section">
+                    <div class="section-header"><h2>Fixed Costs</h2><button id="clear-fixed-btn" class="clear-btn" title="Clear all fixed costs">Clear All</button></div>
+                    <ul id="fixed-costs-list" class="costs-list"></ul>
+                </section>
+                <section id="variable-costs" class="cost-section">
+                    <div class="section-header"><h2>Variable Costs</h2><button id="clear-variable-btn" class="clear-btn" title="Clear all variable costs">Clear All</button></div>
+                    <ul id="variable-costs-list" class="costs-list"></ul>
+                </section>
+            </div>
+        </main>
+        <footer class="totals-footer">
+            <div id="total-fixed">Total Fixed: $0.00</div>
+            <div id="total-variable">Total Variable: $0.00</div>
+            <div id="grand-total">Grand Total: $0.00</div>
+        </footer>
+    </div>
+</body>
+</html>
