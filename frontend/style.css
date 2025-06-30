@@ -39,9 +39,9 @@ body { font-family: var(--font-sans); background-color: var(--bg); color: var(--
 .costs-list li { display: flex; align-items: flex-start; padding: 1rem; background-color: var(--surface); border-radius: 8px; border: 1px solid var(--border); transition: all 0.2s; cursor: grab; }
 .costs-list li:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
 .cost-details { flex-grow: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; }
-.cost-main-info { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 1rem; /* ADDED: This is the fix */ }
+.cost-main-info { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 1rem; }
 .cost-name { font-weight: 500; }
-.cost-amount { font-variant-numeric: tabular-nums; font-weight: 500; white-space: nowrap; /* Prevent amount from wrapping */ }
+.cost-amount { font-variant-numeric: tabular-nums; font-weight: 500; white-space: nowrap; }
 .cost-description { font-size: 0.9em; color: var(--text-secondary); padding-left: 2px; word-break: break-word; }
 #fixed-costs-list .cost-amount { color: var(--danger); }
 #variable-costs-list .cost-amount { color: var(--warning); }
@@ -103,6 +103,7 @@ li:not(.is-editing) .save-btn, li:not(.is-editing) .cancel-btn { display: none; 
 .import-modal-footer { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border); }
 .import-confirm-btn { width: 100%; background-color: var(--accent); color: white; font-weight: 500; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; }
 .import-confirm-btn:hover { background-color: color-mix(in srgb, var(--accent) 85%, black); }
+.import-item-date { font-size: 0.8em; font-style: italic; color: var(--text-secondary); margin-top: 4px; }
 @media (min-width: 768px) { .costs-display-area { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 600px) { .app-header, .form-actions, .import-modal-body { flex-direction: column; align-items: stretch; gap: 1rem; } }
 .costs-list.drag-over { border: 2px dashed var(--accent); background-color: color-mix(in srgb, var(--accent) 10%, transparent); }
