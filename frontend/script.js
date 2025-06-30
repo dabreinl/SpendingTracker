@@ -1,5 +1,4 @@
 // frontend/script.js
-
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- DOM Element Selections ---
@@ -9,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const addExpenseBtn = document.getElementById('add-expense-btn');
     const expenseNameInput = document.getElementById('expense-name-input');
     const expenseAmountInput = document.getElementById('expense-amount-input');
+    const expenseDescriptionInput = document.getElementById('expense-description-input');
     const clearFixedBtn = document.getElementById('clear-fixed-btn');
     const clearVariableBtn = document.getElementById('clear-variable-btn');
     const totalFixedEl = document.getElementById('total-fixed');
@@ -16,8 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const grandTotalEl = document.getElementById('grand-total');
     const currencySelector = document.getElementById('currency-selector');
     const themeToggleBtn = document.getElementById('theme-toggle-btn');
-    
-    // New Date Picker selectors
     const datePickerBtn = document.getElementById('date-picker-toggle-btn');
     const datePickerModal = document.getElementById('date-picker-modal');
     const modalOverlay = document.getElementById('modal-overlay');
@@ -25,17 +23,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const nextYearBtn = document.getElementById('next-year-btn');
     const displayedYearEl = document.getElementById('displayed-year');
     const monthGrid = document.getElementById('month-grid');
+    const openImportModalBtn = document.getElementById('open-import-modal-btn');
+    const importModal = document.getElementById('import-modal');
+    const importModalOverlay = document.getElementById('import-modal-overlay');
+    const importModalCloseBtn = document.getElementById('import-modal-close-btn');
+    const importFixedList = document.getElementById('import-fixed-list');
+    const importVariableList = document.getElementById('import-variable-list');
+    const importSelectedBtn = document.getElementById('import-selected-btn');
 
     // --- SVG Icons ---
-    const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
-    const moonIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+    const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
+    const moonIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
 
-    // --- State ---
+    // --- State & Constants ---
     const API_URL = '/api/costs';
     const MIN_YEAR = 2025;
     const now = new Date();
     let selectedYear = now.getFullYear();
-    let selectedMonth = now.getMonth() + 1; // Use 1-12 for months
+    let selectedMonth = now.getMonth() + 1;
     let displayedYearInPicker = selectedYear;
     let currentCurrency = currencySelector.value;
     let allCosts = [];
@@ -47,10 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- API Communication ---
     const fetchMonthlySummary = async () => {
-        try {
-            const response = await fetch(`${API_URL}/summary`);
-            monthlySummary = await response.json();
-        } catch (error) { console.error('Failed to fetch monthly summary:', error); }
+        try { const response = await fetch(`${API_URL}/summary`); monthlySummary = await response.json(); }
+        catch (error) { console.error('Failed to fetch monthly summary:', error); }
     };
 
     const fetchAndRenderCosts = async () => {
@@ -66,22 +69,25 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) { console.error('Failed to fetch costs:', error); }
     };
 
-    const addCost = async (name, amount, type) => {
+    const addCost = async (name, amount, description, type) => {
         if (!name || !amount) { alert('Please enter both name and amount.'); return; }
         const dateForExpense = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01T12:00:00`;
         try {
-            await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, amount, type, date: dateForExpense }),
-            });
-            expenseNameInput.value = ''; expenseAmountInput.value = ''; expenseNameInput.focus();
-            await fetchMonthlySummary(); // Refetch summary in case this was the first expense for the month
+            await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, amount, description, type, date: dateForExpense }), });
+            expenseNameInput.value = ''; expenseAmountInput.value = ''; expenseDescriptionInput.value = '';
+            expenseNameInput.focus();
+            await fetchMonthlySummary();
             await fetchAndRenderCosts();
         } catch (error) { console.error('Error adding cost:', error); }
     };
 
-    const deleteCost = async (costId) => { try { await fetch(`${API_URL}/${costId}`, { method: 'DELETE' }); await fetchMonthlySummary(); await fetchAndRenderCosts(); } catch (error) { console.error(`Error deleting cost ${costId}:`, error); } };
+    const deleteCost = async (costId) => {
+        try {
+            await fetch(`${API_URL}/${costId}`, { method: 'DELETE' });
+            await fetchMonthlySummary();
+            await fetchAndRenderCosts();
+        } catch (error) { console.error(`Error deleting cost ${costId}:`, error); }
+    };
     
     const clearCosts = async (costType) => {
         try {
@@ -94,14 +100,44 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) { console.error(`Error clearing ${costType} costs:`, error); }
     };
 
-    const updateCostType = async (costId, newType) => { try { await fetch(`${API_URL}/${costId}/type`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: newType }), }); await fetchAndRenderCosts(); } catch (error) { console.error(`Error updating cost ${costId}:`, error); } };
+    const updateCostType = async (costId, newType) => {
+        try {
+            await fetch(`${API_URL}/${costId}/type`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: newType }), });
+            await fetchAndRenderCosts();
+        } catch (error) { console.error(`Error updating cost ${costId}:`, error); }
+    };
+    
+    const fetchAllPreviousCosts = async () => {
+        const url = new URL(`${API_URL}/all_previous`, window.location.origin);
+        url.searchParams.append('year', selectedYear);
+        url.searchParams.append('month', String(selectedMonth).padStart(2, '0'));
+        try { const response = await fetch(url); return await response.json(); }
+        catch (error) { console.error('Failed to fetch previous costs:', error); return []; }
+    };
+
+    const batchAddCosts = async (costs) => {
+        try {
+            await fetch(`${API_URL}/batch_add`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(costs), });
+            await fetchMonthlySummary();
+            await fetchAndRenderCosts();
+        } catch (error) { console.error('Error batch adding costs:', error); }
+    };
 
     // --- Rendering Logic ---
     const renderCosts = () => {
         fixedCostsList.innerHTML = ''; variableCostsList.innerHTML = ''; let totalFixed = 0; let totalVariable = 0;
         allCosts.forEach(cost => {
             const listItem = document.createElement('li'); listItem.setAttribute('draggable', 'true'); listItem.dataset.id = cost.id;
-            listItem.innerHTML = `<div class="cost-details"><span class="cost-name">${cost.name}</span><span class="cost-amount">${formatCurrency(cost.amount)}</span></div><button class="delete-btn" data-id="${cost.id}" aria-label="Delete item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>`;
+            const descriptionHTML = (cost.description && cost.description !== 'null') ? `<p class="cost-description">${cost.description}</p>` : '';
+            listItem.innerHTML = `
+                <div class="cost-details">
+                    <div class="cost-main-info">
+                        <span class="cost-name">${cost.name}</span>
+                        <span class="cost-amount">${formatCurrency(cost.amount)}</span>
+                    </div>
+                    ${descriptionHTML}
+                </div>
+                <button class="delete-btn" data-id="${cost.id}" aria-label="Delete item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>`;
             if (cost.cost_type === 'fixed') { fixedCostsList.appendChild(listItem); totalFixed += cost.amount; } 
             else if (cost.cost_type === 'variable') { variableCostsList.appendChild(listItem); totalVariable += cost.amount; }
         });
@@ -129,11 +165,39 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeDatePicker = () => datePickerModal.classList.add('hidden');
     const updateDatePickerButtonText = () => { datePickerBtn.textContent = `${monthNames[selectedMonth - 1]} ${selectedYear}`; };
 
+    // --- Import Modal Logic ---
+    const renderImportModal = (costs) => {
+        importFixedList.innerHTML = ''; importVariableList.innerHTML = '';
+        const fixedItems = costs.filter(c => c.cost_type === 'fixed');
+        const variableItems = costs.filter(c => c.cost_type === 'variable');
+        if (costs.length === 0) {
+            importFixedList.innerHTML = '<li>No previous expenses to import.</li>'; return;
+        }
+        const createListItem = (cost) => {
+            const listItem = document.createElement('li'); const checkboxId = `import-checkbox-${cost.id}`;
+            const descriptionHTML = (cost.description && cost.description !== 'null') ? `<p class="cost-description">${cost.description}</p>` : '';
+            listItem.innerHTML = `
+                <input type="checkbox" id="${checkboxId}" data-name="${cost.name}" data-amount="${cost.amount}" data-type="${cost.cost_type}" data-description="${cost.description || ''}">
+                <label for="${checkboxId}">
+                    <div class="cost-main-info">
+                        <span class="cost-name">${cost.name}</span>
+                        <span class="cost-amount">${formatCurrency(cost.amount)}</span>
+                    </div>
+                    ${descriptionHTML}
+                </label>`;
+            return listItem;
+        };
+        fixedItems.forEach(cost => importFixedList.appendChild(createListItem(cost)));
+        variableItems.forEach(cost => importVariableList.appendChild(createListItem(cost)));
+    };
+    const openImportModal = async () => { const previousCosts = await fetchAllPreviousCosts(); renderImportModal(previousCosts); importModal.classList.remove('hidden'); };
+    const closeImportModal = () => importModal.classList.add('hidden');
+
     // --- Theme Management ---
     const applyTheme = (theme) => { body.setAttribute('data-theme', theme); themeToggleBtn.innerHTML = theme === 'dark' ? sunIcon : moonIcon; localStorage.setItem('theme', theme); };
 
     // --- Event Listeners ---
-    addExpenseBtn.addEventListener('click', () => { const selectedType = document.querySelector('input[name="expense-type"]:checked').value; addCost(expenseNameInput.value, expenseAmountInput.value, selectedType); });
+    addExpenseBtn.addEventListener('click', () => { const selectedType = document.querySelector('input[name="expense-type"]:checked').value; addCost(expenseNameInput.value, expenseAmountInput.value, expenseDescriptionInput.value, selectedType); });
     datePickerBtn.addEventListener('click', openDatePicker);
     modalOverlay.addEventListener('click', closeDatePicker);
     prevYearBtn.addEventListener('click', () => { displayedYearInPicker--; renderMonthGrid(displayedYearInPicker); });
@@ -144,7 +208,18 @@ document.addEventListener('DOMContentLoaded', () => {
             updateDatePickerButtonText(); closeDatePicker(); fetchAndRenderCosts();
         }
     });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !datePickerModal.classList.contains('hidden')) closeDatePicker(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && (!datePickerModal.classList.contains('hidden') || !importModal.classList.contains('hidden'))) { closeDatePicker(); closeImportModal(); } });
+    openImportModalBtn.addEventListener('click', openImportModal);
+    importModalOverlay.addEventListener('click', closeImportModal);
+    importModalCloseBtn.addEventListener('click', closeImportModal);
+    importSelectedBtn.addEventListener('click', () => {
+        const selectedCheckboxes = document.querySelectorAll('#import-modal input[type="checkbox"]:checked');
+        if (selectedCheckboxes.length === 0) { alert('Please select at least one expense to import.'); return; }
+        const dateForNewExpenses = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01T12:00:00`;
+        const costsToImport = Array.from(selectedCheckboxes).map(cb => ({ name: cb.dataset.name, amount: parseFloat(cb.dataset.amount), type: cb.dataset.type, description: cb.dataset.description, date: dateForNewExpenses, }));
+        batchAddCosts(costsToImport);
+        closeImportModal();
+    });
     clearFixedBtn.addEventListener('click', () => { const monthName = monthNames[selectedMonth - 1]; if (confirm(`Are you sure you want to delete all FIXED costs for ${monthName} ${selectedYear}?`)) clearCosts('fixed'); });
     clearVariableBtn.addEventListener('click', () => { const monthName = monthNames[selectedMonth - 1]; if (confirm(`Are you sure you want to delete all VARIABLE costs for ${monthName} ${selectedYear}?`)) clearCosts('variable'); });
     let draggedItem = null;

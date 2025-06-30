@@ -1,5 +1,4 @@
 # backend/database.py
-
 import sqlite3
 import click
 from flask import current_app, g
@@ -32,14 +31,14 @@ def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
 
-# --- Application Specific Queries ---
-
 def get_all_costs(year=None, month=None):
-    query = "SELECT id, name, amount, cost_type, strftime('%Y-%m-%dT%H:%M:%SZ', created_at) AS created_at FROM costs"
+    query = "SELECT id, name, amount, description, cost_type, strftime('%Y-%m-%dT%H:%M:%SZ', created_at) AS created_at FROM costs"
     conditions, params = [], []
     if year and month:
-        conditions.append("strftime('%Y', created_at) = ?"); params.append(year)
-        conditions.append("strftime('%m', created_at) = ?"); params.append(month)
+        conditions.append("strftime('%Y', created_at) = ?")
+        params.append(year)
+        conditions.append("strftime('%m', created_at) = ?")
+        params.append(month)
     if conditions:
         query += ' WHERE ' + ' AND '.join(conditions)
     query += ' ORDER BY created_at DESC'
@@ -47,9 +46,9 @@ def get_all_costs(year=None, month=None):
     costs = db.execute(query, params).fetchall()
     return [dict(row) for row in costs]
 
-def add_cost(name, amount, cost_type, date_str):
+def add_cost(name, amount, description, cost_type, date_str):
     db = get_db()
-    db.execute('INSERT INTO costs (name, amount, cost_type, created_at) VALUES (?, ?, ?, ?)', (name, amount, cost_type, date_str))
+    db.execute('INSERT INTO costs (name, amount, description, cost_type, created_at) VALUES (?, ?, ?, ?, ?)', (name, amount, description, cost_type, date_str))
     db.commit()
 
 def get_summary_of_months():
@@ -58,6 +57,17 @@ def get_summary_of_months():
     summary = db.execute(query).fetchall()
     return [dict(row) for row in summary]
 
+def get_all_previous_costs(year, month):
+    query = "SELECT id, name, amount, description, cost_type FROM costs WHERE NOT (strftime('%Y', created_at) = ? AND strftime('%m', created_at) = ?) ORDER BY created_at DESC;"
+    db = get_db()
+    costs = db.execute(query, (year, month)).fetchall()
+    return [dict(row) for row in costs]
+
+def batch_add_costs(costs):
+    db = get_db()
+    db.executemany('INSERT INTO costs (name, amount, description, cost_type, created_at) VALUES (:name, :amount, :description, :type, :date)', costs)
+    db.commit()
+
 def delete_cost_by_id(cost_id):
     db = get_db()
     db.execute('DELETE FROM costs WHERE id = ?', (cost_id,))
@@ -65,7 +75,7 @@ def delete_cost_by_id(cost_id):
 
 def delete_costs_by_type(cost_type, year, month):
     db = get_db()
-    db.execute("DELETE FROM costs WHERE cost_type = ? AND strftime('%Y', created_at) = ? AND strftime('%m', created_at) = ?",(cost_type, year, month))
+    db.execute("DELETE FROM costs WHERE cost_type = ? AND strftime('%Y', created_at) = ? AND strftime('%m', created_at) = ?", (cost_type, year, month))
     db.commit()
 
 def update_cost_type(cost_id, new_type):
