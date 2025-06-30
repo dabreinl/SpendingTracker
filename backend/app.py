@@ -45,16 +45,13 @@ def create_app():
     def update_cost(cost_id):
         data = request.get_json()
         required = ['name', 'amount']
-        if not data or not all(k in data for k in required):
-            return jsonify({'error': 'Missing name or amount'}), 400
+        if not data or not all(k in data for k in required): return jsonify({'error': 'Missing name or amount'}), 400
         description = data.get('description', None)
         database.update_cost(cost_id, data['name'], float(data['amount']), description)
         return jsonify({'success': True}), 200
 
     @app.route('/api/costs/<int:cost_id>', methods=['DELETE'])
-    def delete_cost(cost_id):
-        database.delete_cost_by_id(cost_id)
-        return jsonify({'success': True}), 200
+    def delete_cost(cost_id): database.delete_cost_by_id(cost_id); return jsonify({'success': True}), 200
 
     @app.route('/api/costs/clear/<string:cost_type>', methods=['DELETE'])
     def clear_costs(cost_type):
@@ -67,9 +64,17 @@ def create_app():
     @app.route('/api/costs/<int:cost_id>/type', methods=['PATCH'])
     def update_cost_category(cost_id):
         new_type = request.get_json().get('type')
-        if not new_type or new_type not in ['fixed', 'variable']:
-            return jsonify({'error': 'Invalid or missing type'}), 400
+        if not new_type or new_type not in ['fixed', 'variable']: return jsonify({'error': 'Invalid or missing type'}), 400
         database.update_cost_type(cost_id, new_type)
+        return jsonify({'success': True}), 200
+
+    # --- NEW: Endpoint to update the checked status of an expense ---
+    @app.route('/api/costs/<int:cost_id>/checked', methods=['PATCH'])
+    def update_checked(cost_id):
+        data = request.get_json()
+        if 'is_checked' not in data or not isinstance(data['is_checked'], bool):
+            return jsonify({'error': 'Invalid or missing is_checked boolean field'}), 400
+        database.update_checked_status(cost_id, 1 if data['is_checked'] else 0)
         return jsonify({'success': True}), 200
 
     @app.route('/')

@@ -32,7 +32,7 @@ def init_app(app):
     app.cli.add_command(init_db_command)
 
 def get_all_costs(year=None, month=None):
-    query = "SELECT id, name, amount, description, cost_type, strftime('%Y-%m-%dT%H:%M:%SZ', created_at) AS created_at FROM costs"
+    query = "SELECT id, name, amount, description, cost_type, is_checked, strftime('%Y-%m-%dT%H:%M:%SZ', created_at) AS created_at FROM costs"
     conditions, params = [], []
     if year and month:
         conditions.append("strftime('%Y', created_at) = ?")
@@ -41,7 +41,7 @@ def get_all_costs(year=None, month=None):
         params.append(month)
     if conditions:
         query += ' WHERE ' + ' AND '.join(conditions)
-    query += ' ORDER BY created_at DESC'
+    query += ' ORDER BY is_checked ASC, created_at DESC' # Show unchecked items first
     db = get_db()
     costs = db.execute(query, params).fetchall()
     return [dict(row) for row in costs]
@@ -58,13 +58,7 @@ def get_summary_of_months():
     return [dict(row) for row in summary]
 
 def get_all_previous_costs(year, month):
-    # MODIFIED: Query now also fetches the creation date of each past expense
-    query = """
-        SELECT id, name, amount, description, cost_type, strftime('%Y-%m-%dT%H:%M:%SZ', created_at) AS created_at
-        FROM costs
-        WHERE NOT (strftime('%Y', created_at) = ? AND strftime('%m', created_at) = ?)
-        ORDER BY created_at DESC;
-    """
+    query = "SELECT id, name, amount, description, cost_type, strftime('%Y-%m-%dT%H:%M:%SZ', created_at) AS created_at FROM costs WHERE NOT (strftime('%Y', created_at) = ? AND strftime('%m', created_at) = ?) ORDER BY created_at DESC;"
     db = get_db()
     costs = db.execute(query, (year, month)).fetchall()
     return [dict(row) for row in costs]
@@ -92,4 +86,11 @@ def update_cost(cost_id, name, amount, description):
 def update_cost_type(cost_id, new_type):
     db = get_db()
     db.execute('UPDATE costs SET cost_type = ? WHERE id = ?', (new_type, cost_id))
+    db.commit()
+
+# --- NEW: Function to update the checked status of an expense ---
+def update_checked_status(cost_id, is_checked):
+    """Updates the is_checked status for a given cost ID."""
+    db = get_db()
+    db.execute('UPDATE costs SET is_checked = ? WHERE id = ?', (is_checked, cost_id))
     db.commit()

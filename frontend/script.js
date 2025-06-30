@@ -1,6 +1,7 @@
 // frontend/script.js
 document.addEventListener('DOMContentLoaded', () => {
 
+    // --- DOM Element Selections ---
     const body = document.body;
     const fixedCostsList = document.getElementById('fixed-costs-list');
     const variableCostsList = document.getElementById('variable-costs-list');
@@ -30,9 +31,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const importVariableList = document.getElementById('import-variable-list');
     const importSelectedBtn = document.getElementById('import-selected-btn');
 
+    // --- SVG Icons ---
     const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
     const moonIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+    const checkIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor"><path d="M4 10l4 4L16 6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
+    // --- State & Constants ---
     const API_URL = '/api/costs';
     const MIN_YEAR = 2025;
     const now = new Date();
@@ -44,9 +48,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let monthlySummary = [];
     let currentlyEditingId = null;
 
+    // --- Helper & Formatting Functions ---
     const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: currentCurrency }).format(amount);
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
+    // --- API Communication ---
     const fetchMonthlySummary = async () => { try { const response = await fetch(`${API_URL}/summary`); monthlySummary = await response.json(); } catch (error) { console.error('Failed to fetch monthly summary:', error); } };
     const fetchAndRenderCosts = async () => { if (!selectedYear || !selectedMonth) return; try { const url = new URL(API_URL, window.location.origin); url.searchParams.append('year', selectedYear); url.searchParams.append('month', String(selectedMonth).padStart(2, '0')); const response = await fetch(url); if (!response.ok) throw new Error('Network response was not ok'); allCosts = await response.json(); renderCosts(); } catch (error) { console.error('Failed to fetch costs:', error); } };
     const addCost = async (name, amount, description, type) => { if (!name || !amount) { alert('Please enter both name and amount.'); return; } const dateForExpense = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01T12:00:00`; try { await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, amount, description, type, date: dateForExpense }), }); expenseNameInput.value = ''; expenseAmountInput.value = ''; expenseDescriptionInput.value = ''; expenseNameInput.focus(); await fetchMonthlySummary(); await fetchAndRenderCosts(); } catch (error) { console.error('Error adding cost:', error); } };
@@ -56,29 +62,40 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateCostType = async (costId, newType) => { try { await fetch(`${API_URL}/${costId}/type`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: newType }), }); await fetchAndRenderCosts(); } catch (error) { console.error(`Error updating cost type for ${costId}:`, error); } };
     const fetchAllPreviousCosts = async () => { const url = new URL(`${API_URL}/all_previous`, window.location.origin); url.searchParams.append('year', selectedYear); url.searchParams.append('month', String(selectedMonth).padStart(2, '0')); try { const response = await fetch(url); return await response.json(); } catch (error) { console.error('Failed to fetch previous costs:', error); return []; } };
     const batchAddCosts = async (costs) => { try { await fetch(`${API_URL}/batch_add`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(costs), }); await fetchMonthlySummary(); await fetchAndRenderCosts(); } catch (error) { console.error('Error batch adding costs:', error); } };
-    
+    const updateCheckedStatus = async (costId, isChecked) => { try { await fetch(`${API_URL}/${costId}/checked`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ is_checked: isChecked }), }); await fetchAndRenderCosts(); } catch (error) { console.error(`Error updating checked status for ${costId}:`, error); fetchAndRenderCosts(); } };
+
+    // --- Rendering Logic ---
     const renderCosts = () => {
         fixedCostsList.innerHTML = ''; variableCostsList.innerHTML = ''; let totalFixed = 0; let totalVariable = 0;
         const fixedItems = allCosts.filter(c => c.cost_type === 'fixed');
         const variableItems = allCosts.filter(c => c.cost_type === 'variable');
+        
         const createCostItemHTML = (cost) => {
             const descriptionText = cost.description || '';
+            const isChecked = cost.is_checked === 1;
+            const checkboxId = `cost-check-${cost.id}`;
             const descriptionHTML = (descriptionText && descriptionText !== 'null') ? `<p class="cost-description">${descriptionText}</p>` : '';
             return `
-                <div class="cost-details">
-                    <div class="view-mode">
-                        <div class="cost-main-info">
-                            <span class="cost-name">${cost.name}</span>
-                            <span class="cost-amount">${formatCurrency(cost.amount)}</span>
-                        </div>
-                        ${descriptionHTML}
+                <div class="cost-item-main">
+                    <div class="custom-checkbox">
+                        <input type="checkbox" class="cost-checkbox" id="${checkboxId}" ${isChecked ? 'checked' : ''}>
+                        <label for="${checkboxId}" class="visual" aria-label="Mark as paid">${checkIcon}</label>
                     </div>
-                    <div class="edit-mode">
-                        <div class="edit-name-amount">
-                            <input type="text" class="edit-name" value="${cost.name}" required>
-                            <input type="number" class="edit-amount" value="${cost.amount}" min="0.01" step="0.01" required>
+                    <div class="cost-details">
+                        <div class="view-mode">
+                            <div class="cost-main-info">
+                                <span class="cost-name">${cost.name}</span>
+                                <span class="cost-amount">${formatCurrency(cost.amount)}</span>
+                            </div>
+                            ${descriptionHTML}
                         </div>
-                        <textarea class="edit-description" rows="2" placeholder="Description...">${descriptionText}</textarea>
+                        <div class="edit-mode">
+                            <div class="edit-name-amount">
+                                <input type="text" class="edit-name" value="${cost.name}" required>
+                                <input type="number" class="edit-amount" value="${cost.amount}" min="0.01" step="0.01" required>
+                            </div>
+                            <textarea class="edit-description" rows="2" placeholder="Description...">${descriptionText}</textarea>
+                        </div>
                     </div>
                 </div>
                 <div class="item-actions">
@@ -88,55 +105,40 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="cancel-btn" aria-label="Cancel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg></button>
                 </div>`;
         };
-        if (fixedItems.length === 0) { fixedCostsList.innerHTML = '<li class="empty-list-message">No fixed costs for this month.</li>'; } 
-        else { fixedItems.forEach(cost => { const li = document.createElement('li'); li.dataset.id = cost.id; li.draggable = true; li.innerHTML = createCostItemHTML(cost); fixedCostsList.appendChild(li); totalFixed += cost.amount; }); }
-        if (variableItems.length === 0) { variableCostsList.innerHTML = '<li class="empty-list-message">No variable costs for this month.</li>'; }
-        else { variableItems.forEach(cost => { const li = document.createElement('li'); li.dataset.id = cost.id; li.draggable = true; li.innerHTML = createCostItemHTML(cost); variableCostsList.appendChild(li); totalVariable += cost.amount; }); }
-        totalFixedEl.textContent = `Fixed: ${formatCurrency(totalFixed)}`; totalVariableEl.textContent = `Variable: ${formatCurrency(totalVariable)}`; grandTotalEl.textContent = `Grand Total: ${formatCurrency(totalFixed + totalVariable)}`;
+        const populateList = (listElement, items) => {
+            if (items.length === 0) {
+                const message = listElement === fixedCostsList ? 'No fixed costs for this month.' : 'No variable costs for this month.';
+                listElement.innerHTML = `<li class="empty-list-message">${message}</li>`;
+            } else {
+                items.forEach(cost => {
+                    const li = document.createElement('li');
+                    li.dataset.id = cost.id;
+                    li.draggable = true; // FIX: Ensure item is draggable
+                    if (cost.is_checked) li.classList.add('is-checked');
+                    li.innerHTML = createCostItemHTML(cost);
+                    listElement.appendChild(li);
+                });
+            }
+        };
+        populateList(fixedCostsList, fixedItems);
+        populateList(variableCostsList, variableItems);
+        totalFixedEl.textContent = `Fixed: ${formatCurrency(fixedItems.reduce((sum, item) => sum + item.amount, 0))}`;
+        totalVariableEl.textContent = `Variable: ${formatCurrency(variableItems.reduce((sum, item) => sum + item.amount, 0))}`;
+        grandTotalEl.textContent = `Grand Total: ${formatCurrency(allCosts.reduce((sum, item) => sum + item.amount, 0))}`;
     };
-    const renderMonthGrid = (year) => {
-        monthGrid.innerHTML = ''; displayedYearEl.textContent = year;
-        const currentYear = new Date().getFullYear(); const currentMonth = new Date().getMonth() + 1;
-        for (let i = 1; i <= 12; i++) {
-            if (year === currentYear && i > currentMonth) continue;
-            if (year < MIN_YEAR) continue;
-            const monthCell = document.createElement('div'); monthCell.classList.add('month-cell');
-            monthCell.textContent = monthNames[i - 1].substring(0, 3);
-            monthCell.dataset.month = i; monthCell.dataset.year = year;
-            const monthStr = String(i).padStart(2, '0');
-            if (monthlySummary.some(s => s.year == year && s.month == monthStr)) { monthCell.classList.add('has-data'); }
-            if (year === selectedYear && i === selectedMonth) { monthCell.classList.add('is-selected'); }
-            monthGrid.appendChild(monthCell);
-        }
-        prevYearBtn.disabled = year <= MIN_YEAR; nextYearBtn.disabled = year >= currentYear;
-    };
+    
+    const renderMonthGrid = (year) => { monthGrid.innerHTML = ''; displayedYearEl.textContent = year; const currentYear = new Date().getFullYear(); const currentMonth = new Date().getMonth() + 1; for (let i = 1; i <= 12; i++) { if (year === currentYear && i > currentMonth) continue; if (year < MIN_YEAR) continue; const monthCell = document.createElement('div'); monthCell.classList.add('month-cell'); monthCell.textContent = monthNames[i - 1].substring(0, 3); monthCell.dataset.month = i; monthCell.dataset.year = year; const monthStr = String(i).padStart(2, '0'); if (monthlySummary.some(s => s.year == year && s.month == monthStr)) { monthCell.classList.add('has-data'); } if (year === selectedYear && i === selectedMonth) { monthCell.classList.add('is-selected'); } monthGrid.appendChild(monthCell); } prevYearBtn.disabled = year <= MIN_YEAR; nextYearBtn.disabled = year >= currentYear; };
     const openDatePicker = () => { displayedYearInPicker = selectedYear; renderMonthGrid(displayedYearInPicker); datePickerModal.classList.remove('hidden'); };
     const closeDatePicker = () => datePickerModal.classList.add('hidden');
     const updateDatePickerButtonText = () => { datePickerBtn.textContent = `${monthNames[selectedMonth - 1]} ${selectedYear}`; };
-    const renderImportModal = (costs) => {
-        importFixedList.innerHTML = ''; importVariableList.innerHTML = '';
-        const fixedItems = costs.filter(c => c.cost_type === 'fixed');
-        const variableItems = costs.filter(c => c.cost_type === 'variable');
-        if (costs.length === 0) { importFixedList.innerHTML = '<li class="empty-list-message">Nothing to import yet!</li>'; return; }
-        const createListItem = (cost) => {
-            const listItem = document.createElement('li'); const checkboxId = `import-checkbox-${cost.id}`;
-            const descriptionHTML = (cost.description && cost.description !== 'null') ? `<p class="cost-description">${cost.description}</p>` : '';
-            const originDate = new Date(cost.created_at);
-            const originMonth = monthNames[originDate.getUTCMonth()];
-            const originYear = originDate.getUTCFullYear();
-            const dateHTML = `<span class="import-item-date">from ${originMonth} ${originYear}</span>`;
-            listItem.innerHTML = `<input type="checkbox" id="${checkboxId}" data-name="${cost.name}" data-amount="${cost.amount}" data-type="${cost.cost_type}" data-description="${cost.description || ''}"><label for="${checkboxId}"><div class="cost-main-info"><span class="cost-name">${cost.name}</span><span class="cost-amount">${formatCurrency(cost.amount)}</span></div>${descriptionHTML}${dateHTML}</label>`;
-            return listItem;
-        };
-        fixedItems.forEach(cost => importFixedList.appendChild(createListItem(cost)));
-        variableItems.forEach(cost => importVariableList.appendChild(createListItem(cost)));
-    };
+    const renderImportModal = (costs) => { importFixedList.innerHTML = ''; importVariableList.innerHTML = ''; const fixedItems = costs.filter(c => c.cost_type === 'fixed'); const variableItems = costs.filter(c => c.cost_type === 'variable'); if (costs.length === 0) { importFixedList.innerHTML = '<li class="empty-list-message">Nothing to import yet!</li>'; return; } const createListItem = (cost) => { const listItem = document.createElement('li'); const checkboxId = `import-checkbox-${cost.id}`; const descriptionHTML = (cost.description && cost.description !== 'null') ? `<p class="cost-description">${cost.description}</p>` : ''; const originDate = new Date(cost.created_at); const originMonth = monthNames[originDate.getUTCMonth()]; const originYear = originDate.getUTCFullYear(); const dateHTML = `<span class="import-item-date">from ${originMonth} ${originYear}</span>`; listItem.innerHTML = `<input type="checkbox" id="${checkboxId}" data-name="${cost.name}" data-amount="${cost.amount}" data-type="${cost.cost_type}" data-description="${cost.description || ''}"><label for="${checkboxId}"><div class="cost-main-info"><span class="cost-name">${cost.name}</span><span class="cost-amount">${formatCurrency(cost.amount)}</span></div>${descriptionHTML}${dateHTML}</label>`; return listItem; }; fixedItems.forEach(cost => importFixedList.appendChild(createListItem(cost))); variableItems.forEach(cost => importVariableList.appendChild(createListItem(cost))); };
     const openImportModal = async () => { const previousCosts = await fetchAllPreviousCosts(); renderImportModal(previousCosts); importModal.classList.remove('hidden'); };
     const closeImportModal = () => importModal.classList.add('hidden');
     const applyTheme = (theme) => { body.setAttribute('data-theme', theme); themeToggleBtn.innerHTML = theme === 'dark' ? sunIcon : moonIcon; localStorage.setItem('theme', theme); };
     const enterEditMode = (listItem) => { if (currentlyEditingId) { const otherItem = document.querySelector(`.costs-list li[data-id='${currentlyEditingId}']`); if (otherItem) exitEditMode(otherItem); } listItem.classList.add('is-editing'); currentlyEditingId = listItem.dataset.id; listItem.querySelector('.edit-name').focus();};
     const exitEditMode = (listItem) => { listItem.classList.remove('is-editing'); currentlyEditingId = null; };
 
+    // --- Event Listeners ---
     addExpenseBtn.addEventListener('click', () => { const selectedType = document.querySelector('input[name="expense-type"]:checked').value; addCost(expenseNameInput.value, expenseAmountInput.value, expenseDescriptionInput.value, selectedType); });
     datePickerBtn.addEventListener('click', openDatePicker);
     modalOverlay.addEventListener('click', closeDatePicker);
@@ -150,17 +152,16 @@ document.addEventListener('DOMContentLoaded', () => {
     importSelectedBtn.addEventListener('click', () => { const selectedCheckboxes = document.querySelectorAll('#import-modal input[type="checkbox"]:checked'); if (selectedCheckboxes.length === 0) { alert('Please select at least one expense to import.'); return; } const dateForNewExpenses = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01T12:00:00`; const costsToImport = Array.from(selectedCheckboxes).map(cb => ({ name: cb.dataset.name, amount: parseFloat(cb.dataset.amount), type: cb.dataset.type, description: cb.dataset.description, date: dateForNewExpenses, })); batchAddCosts(costsToImport); closeImportModal(); });
     clearFixedBtn.addEventListener('click', () => { const monthName = monthNames[selectedMonth - 1]; if (confirm(`Are you sure you want to delete all FIXED costs for ${monthName} ${selectedYear}?`)) clearCosts('fixed'); });
     clearVariableBtn.addEventListener('click', () => { const monthName = monthNames[selectedMonth - 1]; if (confirm(`Are you sure you want to delete all VARIABLE costs for ${monthName} ${selectedYear}?`)) clearCosts('variable'); });
-    let draggedItem = null;
-    document.addEventListener('dragstart', (e) => { if (e.target.matches('.costs-list li')) { draggedItem = e.target; setTimeout(() => e.target.classList.add('dragging'), 0); } });
-    document.addEventListener('dragend', () => { if (draggedItem) { draggedItem.classList.remove('dragging'); draggedItem = null; } });
-    [fixedCostsList, variableCostsList].forEach(list => { list.addEventListener('dragover', (e) => { e.preventDefault(); list.classList.add('drag-over'); }); list.addEventListener('dragleave', () => list.classList.remove('drag-over')); list.addEventListener('drop', (e) => { e.preventDefault(); list.classList.remove('drag-over'); if (draggedItem && draggedItem.parentElement !== list) { const costId = draggedItem.dataset.id; const newType = list.id === 'fixed-costs-list' ? 'fixed' : 'variable'; updateCostType(costId, newType); } }); });
     currencySelector.addEventListener('change', (e) => { currentCurrency = e.target.value; renderCosts(); });
     themeToggleBtn.addEventListener('click', () => { const newTheme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; applyTheme(newTheme); });
     
+    // Delegated listeners for item actions
     const handleItemActions = async (e) => {
-        const target = e.target; const actionButton = target.closest('.item-actions button');
+        const target = e.target;
+        const actionButton = target.closest('.item-actions button');
         if (!actionButton) return;
-        const listItem = actionButton.closest('li'); const costId = listItem.dataset.id;
+        const listItem = actionButton.closest('li');
+        const costId = listItem.dataset.id;
         if (actionButton.classList.contains('edit-btn')) { enterEditMode(listItem); }
         if (actionButton.classList.contains('cancel-btn')) { exitEditMode(listItem); renderCosts(); }
         if (actionButton.classList.contains('delete-btn')) { if (confirm('Are you sure you want to delete this item?')) deleteCost(costId); }
@@ -174,7 +175,18 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     fixedCostsList.addEventListener('click', handleItemActions);
     variableCostsList.addEventListener('click', handleItemActions);
-    
+
+    const handleCheckboxChange = async (e) => {
+        if (!e.target.classList.contains('cost-checkbox')) return;
+        const listItem = e.target.closest('li');
+        const costId = listItem.dataset.id;
+        const isChecked = e.target.checked;
+        listItem.classList.toggle('is-checked', isChecked);
+        await updateCheckedStatus(costId, isChecked);
+    };
+    fixedCostsList.addEventListener('change', handleCheckboxChange);
+    variableCostsList.addEventListener('change', handleCheckboxChange);
+
     const handleItemKeydown = (e) => {
         if (e.key !== 'Enter') return;
         if (!e.target.matches('.edit-name, .edit-amount, .edit-description')) return;
@@ -186,6 +198,46 @@ document.addEventListener('DOMContentLoaded', () => {
     fixedCostsList.addEventListener('keydown', handleItemKeydown);
     variableCostsList.addEventListener('keydown', handleItemKeydown);
 
+    // FIX: Restored drag and drop functionality
+    let draggedItem = null;
+    document.addEventListener('dragstart', (e) => {
+        const listItem = e.target.closest('.costs-list li');
+        if (listItem) {
+            draggedItem = listItem;
+            setTimeout(() => {
+                listItem.classList.add('dragging');
+            }, 0);
+        }
+    });
+    document.addEventListener('dragend', () => {
+        if (draggedItem) {
+            draggedItem.classList.remove('dragging');
+            draggedItem = null;
+        }
+    });
+    [fixedCostsList, variableCostsList].forEach(list => {
+        list.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const draggingItem = document.querySelector('.dragging');
+            if (draggingItem && draggingItem.parentElement !== list) {
+                list.classList.add('drag-over');
+            }
+        });
+        list.addEventListener('dragleave', () => {
+            list.classList.remove('drag-over');
+        });
+        list.addEventListener('drop', (e) => {
+            e.preventDefault();
+            list.classList.remove('drag-over');
+            if (draggedItem && draggedItem.parentElement !== list) {
+                const costId = draggedItem.dataset.id;
+                const newType = list.id === 'fixed-costs-list' ? 'fixed' : 'variable';
+                updateCostType(costId, newType);
+            }
+        });
+    });
+
+    // --- Initial Load ---
     const initializeApp = async () => {
         applyTheme(localStorage.getItem('theme') || 'light');
         updateDatePickerButtonText();

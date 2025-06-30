@@ -36,8 +36,11 @@ body { font-family: var(--font-sans); background-color: var(--bg); color: var(--
 .clear-btn:hover { border-color: var(--danger); color: var(--danger); }
 .costs-list { list-style: none; display: flex; flex-direction: column; gap: 0.75rem; min-height: 100px; border-radius: 8px; padding: 0.5rem; transition: background-color 0.2s, border-color 0.2s; }
 .empty-list-message { text-align: center; padding: 2rem 1rem; color: var(--text-secondary); font-style: italic; background-color: var(--bg); border-radius: 8px; }
-.costs-list li { display: flex; align-items: flex-start; padding: 1rem; background-color: var(--surface); border-radius: 8px; border: 1px solid var(--border); transition: all 0.2s; cursor: grab; }
+.costs-list li { display: flex; align-items: flex-start; padding: 1rem; background-color: var(--surface); border-radius: 8px; border: 1px solid var(--border); transition: all 0.2s; }
+.costs-list li.is-checked { opacity: 0.65; }
+.costs-list li.is-checked .cost-name, .costs-list li.is-checked .cost-amount { text-decoration: line-through; }
 .costs-list li:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+.cost-item-main { display: flex; flex-grow: 1; gap: 0.75rem; align-items: flex-start; cursor: grab; }
 .cost-details { flex-grow: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; }
 .cost-main-info { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 1rem; }
 .cost-name { font-weight: 500; }
@@ -55,6 +58,7 @@ body { font-family: var(--font-sans); background-color: var(--bg); color: var(--
 .edit-mode { display: none; width: 100%; gap: 0.75rem; flex-direction: column; }
 .is-editing .edit-mode { display: flex; }
 .is-editing .view-mode { display: none; }
+.is-editing .cost-checkbox-wrapper { display: none; }
 .edit-mode input, .edit-mode textarea { width: 100%; padding: 0.5rem; font-size: 1em; font-family: var(--font-sans); background-color: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary); }
 .edit-mode input:focus, .edit-mode textarea:focus { outline: none; border-color: var(--accent); }
 .edit-name-amount { display: flex; gap: 0.75rem; }
@@ -104,7 +108,14 @@ li:not(.is-editing) .save-btn, li:not(.is-editing) .cancel-btn { display: none; 
 .import-confirm-btn { width: 100%; background-color: var(--accent); color: white; font-weight: 500; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; }
 .import-confirm-btn:hover { background-color: color-mix(in srgb, var(--accent) 85%, black); }
 .import-item-date { font-size: 0.8em; font-style: italic; color: var(--text-secondary); margin-top: 4px; }
+.costs-list.drag-over { border: 2px dashed var(--accent); background-color: color-mix(in srgb, var(--accent) 10%, transparent); }
+.costs-list li.dragging { opacity: 0.5; }
+.cost-item-main { cursor: grab; }
+.custom-checkbox { position: relative; display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; flex-shrink: 0; }
+.custom-checkbox input { opacity: 0; width: 100%; height: 100%; position: absolute; cursor: pointer; }
+.custom-checkbox .visual { width: 100%; height: 100%; border-radius: 50%; border: 2px solid var(--border); background-color: var(--surface); transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; }
+.custom-checkbox input:checked + .visual { background-color: var(--accent); border-color: var(--accent); }
+.custom-checkbox .visual svg { width: 14px; height: 14px; stroke: white; stroke-width: 3; opacity: 0; transform: scale(0.5); transition: all 0.2s ease; }
+.custom-checkbox input:checked + .visual svg { opacity: 1; transform: scale(1); }
 @media (min-width: 768px) { .costs-display-area { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 600px) { .app-header, .form-actions, .import-modal-body { flex-direction: column; align-items: stretch; gap: 1rem; } }
-.costs-list.drag-over { border: 2px dashed var(--accent); background-color: color-mix(in srgb, var(--accent) 10%, transparent); }
-.costs-list li.dragging { opacity: 0.5; cursor: grabbing; background-color: color-mix(in srgb, var(--accent) 30%, transparent); }
