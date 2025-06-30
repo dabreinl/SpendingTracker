@@ -51,140 +51,92 @@ document.addEventListener('DOMContentLoaded', () => {
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
     // --- API Communication ---
-    const fetchMonthlySummary = async () => {
-        try { const response = await fetch(`${API_URL}/summary`); monthlySummary = await response.json(); }
-        catch (error) { console.error('Failed to fetch monthly summary:', error); }
-    };
-
-    const fetchAndRenderCosts = async () => {
-        if (!selectedYear || !selectedMonth) return;
-        try {
-            const url = new URL(API_URL, window.location.origin);
-            url.searchParams.append('year', selectedYear);
-            url.searchParams.append('month', String(selectedMonth).padStart(2, '0'));
-            const response = await fetch(url);
-            if (!response.ok) throw new Error('Network response was not ok');
-            allCosts = await response.json();
-            renderCosts();
-        } catch (error) { console.error('Failed to fetch costs:', error); }
-    };
-
-    const addCost = async (name, amount, description, type) => {
-        if (!name || !amount) { alert('Please enter both name and amount.'); return; }
-        const dateForExpense = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01T12:00:00`;
-        try {
-            await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, amount, description, type, date: dateForExpense }), });
-            expenseNameInput.value = ''; expenseAmountInput.value = ''; expenseDescriptionInput.value = '';
-            expenseNameInput.focus();
-            await fetchMonthlySummary();
-            await fetchAndRenderCosts();
-        } catch (error) { console.error('Error adding cost:', error); }
-    };
-
-    const deleteCost = async (costId) => {
-        try {
-            await fetch(`${API_URL}/${costId}`, { method: 'DELETE' });
-            await fetchMonthlySummary();
-            await fetchAndRenderCosts();
-        } catch (error) { console.error(`Error deleting cost ${costId}:`, error); }
-    };
+    const fetchMonthlySummary = async () => { try { const response = await fetch(`${API_URL}/summary`); monthlySummary = await response.json(); } catch (error) { console.error('Failed to fetch monthly summary:', error); } };
+    const fetchAndRenderCosts = async () => { if (!selectedYear || !selectedMonth) return; try { const url = new URL(API_URL, window.location.origin); url.searchParams.append('year', selectedYear); url.searchParams.append('month', String(selectedMonth).padStart(2, '0')); const response = await fetch(url); if (!response.ok) throw new Error('Network response was not ok'); allCosts = await response.json(); renderCosts(); } catch (error) { console.error('Failed to fetch costs:', error); } };
+    const addCost = async (name, amount, description, type) => { if (!name || !amount) { alert('Please enter both name and amount.'); return; } const dateForExpense = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01T12:00:00`; try { await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, amount, description, type, date: dateForExpense }), }); expenseNameInput.value = ''; expenseAmountInput.value = ''; expenseDescriptionInput.value = ''; expenseNameInput.focus(); await fetchMonthlySummary(); await fetchAndRenderCosts(); } catch (error) { console.error('Error adding cost:', error); } };
+    const deleteCost = async (costId) => { try { await fetch(`${API_URL}/${costId}`, { method: 'DELETE' }); await fetchMonthlySummary(); await fetchAndRenderCosts(); } catch (error) { console.error(`Error deleting cost ${costId}:`, error); } };
+    const clearCosts = async (costType) => { try { const url = new URL(`${API_URL}/clear/${costType}`, window.location.origin); url.searchParams.append('year', selectedYear); url.searchParams.append('month', String(selectedMonth).padStart(2, '0')); await fetch(url, { method: 'DELETE' }); await fetchMonthlySummary(); await fetchAndRenderCosts(); } catch (error) { console.error(`Error clearing ${costType} costs:`, error); } };
+    const updateCostType = async (costId, newType) => { try { await fetch(`${API_URL}/${costId}/type`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: newType }), }); await fetchAndRenderCosts(); } catch (error) { console.error(`Error updating cost ${costId}:`, error); } };
+    const fetchAllPreviousCosts = async () => { const url = new URL(`${API_URL}/all_previous`, window.location.origin); url.searchParams.append('year', selectedYear); url.searchParams.append('month', String(selectedMonth).padStart(2, '0')); try { const response = await fetch(url); return await response.json(); } catch (error) { console.error('Failed to fetch previous costs:', error); return []; } };
+    const batchAddCosts = async (costs) => { try { await fetch(`${API_URL}/batch_add`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(costs), }); await fetchMonthlySummary(); await fetchAndRenderCosts(); } catch (error) { console.error('Error batch adding costs:', error); } };
     
-    const clearCosts = async (costType) => {
-        try {
-            const url = new URL(`${API_URL}/clear/${costType}`, window.location.origin);
-            url.searchParams.append('year', selectedYear);
-            url.searchParams.append('month', String(selectedMonth).padStart(2, '0'));
-            await fetch(url, { method: 'DELETE' });
-            await fetchMonthlySummary();
-            await fetchAndRenderCosts();
-        } catch (error) { console.error(`Error clearing ${costType} costs:`, error); }
-    };
-
-    const updateCostType = async (costId, newType) => {
-        try {
-            await fetch(`${API_URL}/${costId}/type`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: newType }), });
-            await fetchAndRenderCosts();
-        } catch (error) { console.error(`Error updating cost ${costId}:`, error); }
-    };
-    
-    const fetchAllPreviousCosts = async () => {
-        const url = new URL(`${API_URL}/all_previous`, window.location.origin);
-        url.searchParams.append('year', selectedYear);
-        url.searchParams.append('month', String(selectedMonth).padStart(2, '0'));
-        try { const response = await fetch(url); return await response.json(); }
-        catch (error) { console.error('Failed to fetch previous costs:', error); return []; }
-    };
-
-    const batchAddCosts = async (costs) => {
-        try {
-            await fetch(`${API_URL}/batch_add`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(costs), });
-            await fetchMonthlySummary();
-            await fetchAndRenderCosts();
-        } catch (error) { console.error('Error batch adding costs:', error); }
-    };
-
     // --- Rendering Logic ---
     const renderCosts = () => {
         fixedCostsList.innerHTML = ''; variableCostsList.innerHTML = ''; let totalFixed = 0; let totalVariable = 0;
-        allCosts.forEach(cost => {
-            const listItem = document.createElement('li'); listItem.setAttribute('draggable', 'true'); listItem.dataset.id = cost.id;
-            const descriptionHTML = (cost.description && cost.description !== 'null') ? `<p class="cost-description">${cost.description}</p>` : '';
-            listItem.innerHTML = `
-                <div class="cost-details">
-                    <div class="cost-main-info">
-                        <span class="cost-name">${cost.name}</span>
-                        <span class="cost-amount">${formatCurrency(cost.amount)}</span>
-                    </div>
-                    ${descriptionHTML}
-                </div>
-                <button class="delete-btn" data-id="${cost.id}" aria-label="Delete item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>`;
-            if (cost.cost_type === 'fixed') { fixedCostsList.appendChild(listItem); totalFixed += cost.amount; } 
-            else if (cost.cost_type === 'variable') { variableCostsList.appendChild(listItem); totalVariable += cost.amount; }
-        });
+        const fixedItems = allCosts.filter(c => c.cost_type === 'fixed');
+        const variableItems = allCosts.filter(c => c.cost_type === 'variable');
+        
+        if (fixedItems.length === 0) {
+            fixedCostsList.innerHTML = '<li class="empty-list-message">No fixed costs for this month.</li>';
+        } else {
+            fixedItems.forEach(cost => {
+                const listItem = document.createElement('li'); listItem.setAttribute('draggable', 'true'); listItem.dataset.id = cost.id;
+                const descriptionHTML = (cost.description && cost.description !== 'null') ? `<p class="cost-description">${cost.description}</p>` : '';
+                listItem.innerHTML = `<div class="cost-details"><div class="cost-main-info"><span class="cost-name">${cost.name}</span><span class="cost-amount">${formatCurrency(cost.amount)}</span></div>${descriptionHTML}</div><button class="delete-btn" data-id="${cost.id}" aria-label="Delete item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>`;
+                fixedCostsList.appendChild(listItem); totalFixed += cost.amount;
+            });
+        }
+        
+        if (variableItems.length === 0) {
+            variableCostsList.innerHTML = '<li class="empty-list-message">No variable costs for this month.</li>';
+        } else {
+            variableItems.forEach(cost => {
+                const listItem = document.createElement('li'); listItem.setAttribute('draggable', 'true'); listItem.dataset.id = cost.id;
+                const descriptionHTML = (cost.description && cost.description !== 'null') ? `<p class="cost-description">${cost.description}</p>` : '';
+                listItem.innerHTML = `<div class="cost-details"><div class="cost-main-info"><span class="cost-name">${cost.name}</span><span class="cost-amount">${formatCurrency(cost.amount)}</span></div>${descriptionHTML}</div><button class="delete-btn" data-id="${cost.id}" aria-label="Delete item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>`;
+                variableCostsList.appendChild(listItem); totalVariable += cost.amount;
+            });
+        }
+
         totalFixedEl.textContent = `Fixed: ${formatCurrency(totalFixed)}`; totalVariableEl.textContent = `Variable: ${formatCurrency(totalVariable)}`; grandTotalEl.textContent = `Grand Total: ${formatCurrency(totalFixed + totalVariable)}`;
     };
-
-    // --- Date Picker Logic ---
+    
+    // --- THIS FUNCTION IS NOW COMPLETE AND CORRECTED ---
     const renderMonthGrid = (year) => {
-        monthGrid.innerHTML = ''; displayedYearEl.textContent = year;
-        const currentYear = new Date().getFullYear(); const currentMonth = new Date().getMonth() + 1;
+        monthGrid.innerHTML = '';
+        displayedYearEl.textContent = year;
+        const currentYear = new Date().getFullYear();
+        const currentMonth = new Date().getMonth() + 1;
+
         for (let i = 1; i <= 12; i++) {
             if (year === currentYear && i > currentMonth) continue;
             if (year < MIN_YEAR) continue;
-            const monthCell = document.createElement('div'); monthCell.classList.add('month-cell');
+            
+            const monthCell = document.createElement('div');
+            monthCell.classList.add('month-cell');
             monthCell.textContent = monthNames[i - 1].substring(0, 3);
-            monthCell.dataset.month = i; monthCell.dataset.year = year;
+            monthCell.dataset.month = i;
+            monthCell.dataset.year = year;
+
             const monthStr = String(i).padStart(2, '0');
-            if (monthlySummary.some(s => s.year == year && s.month == monthStr)) { monthCell.classList.add('has-data'); }
-            if (year === selectedYear && i === selectedMonth) { monthCell.classList.add('is-selected'); }
+            if (monthlySummary.some(s => s.year == year && s.month == monthStr)) {
+                monthCell.classList.add('has-data');
+            }
+            if (year === selectedYear && i === selectedMonth) {
+                monthCell.classList.add('is-selected');
+            }
             monthGrid.appendChild(monthCell);
         }
-        prevYearBtn.disabled = year <= MIN_YEAR; nextYearBtn.disabled = year >= currentYear;
+        prevYearBtn.disabled = year <= MIN_YEAR;
+        nextYearBtn.disabled = year >= currentYear;
     };
+    
     const openDatePicker = () => { displayedYearInPicker = selectedYear; renderMonthGrid(displayedYearInPicker); datePickerModal.classList.remove('hidden'); };
     const closeDatePicker = () => datePickerModal.classList.add('hidden');
     const updateDatePickerButtonText = () => { datePickerBtn.textContent = `${monthNames[selectedMonth - 1]} ${selectedYear}`; };
 
-    // --- Import Modal Logic ---
     const renderImportModal = (costs) => {
         importFixedList.innerHTML = ''; importVariableList.innerHTML = '';
         const fixedItems = costs.filter(c => c.cost_type === 'fixed');
         const variableItems = costs.filter(c => c.cost_type === 'variable');
         if (costs.length === 0) {
-            importFixedList.innerHTML = '<li>No previous expenses to import.</li>'; return;
+            importFixedList.innerHTML = '<li class="empty-list-message">Nothing to import yet!</li>';
+            return;
         }
         const createListItem = (cost) => {
             const listItem = document.createElement('li'); const checkboxId = `import-checkbox-${cost.id}`;
             const descriptionHTML = (cost.description && cost.description !== 'null') ? `<p class="cost-description">${cost.description}</p>` : '';
-            listItem.innerHTML = `
-                <input type="checkbox" id="${checkboxId}" data-name="${cost.name}" data-amount="${cost.amount}" data-type="${cost.cost_type}" data-description="${cost.description || ''}">
-                <label for="${checkboxId}">
-                    <div class="cost-main-info">
-                        <span class="cost-name">${cost.name}</span>
-                        <span class="cost-amount">${formatCurrency(cost.amount)}</span>
-                    </div>
-                    ${descriptionHTML}
-                </label>`;
+            listItem.innerHTML = `<input type="checkbox" id="${checkboxId}" data-name="${cost.name}" data-amount="${cost.amount}" data-type="${cost.cost_type}" data-description="${cost.description || ''}"><label for="${checkboxId}"><div class="cost-main-info"><span class="cost-name">${cost.name}</span><span class="cost-amount">${formatCurrency(cost.amount)}</span></div>${descriptionHTML}</label>`;
             return listItem;
         };
         fixedItems.forEach(cost => importFixedList.appendChild(createListItem(cost)));
@@ -192,22 +144,15 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const openImportModal = async () => { const previousCosts = await fetchAllPreviousCosts(); renderImportModal(previousCosts); importModal.classList.remove('hidden'); };
     const closeImportModal = () => importModal.classList.add('hidden');
-
-    // --- Theme Management ---
+    
     const applyTheme = (theme) => { body.setAttribute('data-theme', theme); themeToggleBtn.innerHTML = theme === 'dark' ? sunIcon : moonIcon; localStorage.setItem('theme', theme); };
-
-    // --- Event Listeners ---
+    
     addExpenseBtn.addEventListener('click', () => { const selectedType = document.querySelector('input[name="expense-type"]:checked').value; addCost(expenseNameInput.value, expenseAmountInput.value, expenseDescriptionInput.value, selectedType); });
     datePickerBtn.addEventListener('click', openDatePicker);
     modalOverlay.addEventListener('click', closeDatePicker);
     prevYearBtn.addEventListener('click', () => { displayedYearInPicker--; renderMonthGrid(displayedYearInPicker); });
     nextYearBtn.addEventListener('click', () => { displayedYearInPicker++; renderMonthGrid(displayedYearInPicker); });
-    monthGrid.addEventListener('click', (e) => {
-        if (e.target.classList.contains('month-cell')) {
-            selectedYear = parseInt(e.target.dataset.year); selectedMonth = parseInt(e.target.dataset.month);
-            updateDatePickerButtonText(); closeDatePicker(); fetchAndRenderCosts();
-        }
-    });
+    monthGrid.addEventListener('click', (e) => { if (e.target.classList.contains('month-cell')) { selectedYear = parseInt(e.target.dataset.year); selectedMonth = parseInt(e.target.dataset.month); updateDatePickerButtonText(); closeDatePicker(); fetchAndRenderCosts(); } });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && (!datePickerModal.classList.contains('hidden') || !importModal.classList.contains('hidden'))) { closeDatePicker(); closeImportModal(); } });
     openImportModalBtn.addEventListener('click', openImportModal);
     importModalOverlay.addEventListener('click', closeImportModal);
@@ -230,7 +175,6 @@ document.addEventListener('DOMContentLoaded', () => {
     themeToggleBtn.addEventListener('click', () => { const newTheme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; applyTheme(newTheme); });
     document.body.addEventListener('click', (e) => { const deleteButton = e.target.closest('.delete-btn'); if (deleteButton) { const costId = deleteButton.dataset.id; if (confirm('Are you sure you want to delete this item?')) deleteCost(costId); } });
 
-    // --- Initial Load ---
     const initializeApp = async () => {
         applyTheme(localStorage.getItem('theme') || 'light');
         updateDatePickerButtonText();
