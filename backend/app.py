@@ -13,18 +13,24 @@ def create_app():
     from . import database
     database.init_app(app)
 
-    # API Routes
+    @app.route('/api/costs/summary', methods=['GET'])
+    def get_costs_summary():
+        summary = database.get_summary_of_months()
+        return jsonify(summary)
+
     @app.route('/api/costs', methods=['GET'])
     def get_costs():
         year = request.args.get('year')
         month = request.args.get('month')
-        all_costs = database.get_all_costs(year=year, month=month)
-        return jsonify(all_costs)
+        return jsonify(database.get_all_costs(year=year, month=month))
 
     @app.route('/api/costs', methods=['POST'])
     def add_new_cost():
         data = request.get_json()
-        database.add_cost(data['name'], float(data['amount']), data['type'])
+        required_fields = ['name', 'amount', 'type', 'date']
+        if not data or not all(field in data for field in required_fields):
+            return jsonify({'error': 'Missing data'}), 400
+        database.add_cost(name=data['name'], amount=float(data['amount']), cost_type=data['type'], date_str=data['date'])
         return jsonify({'success': True}), 201
 
     @app.route('/api/costs/<int:cost_id>', methods=['DELETE'])

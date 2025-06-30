@@ -15,10 +15,7 @@
         <header class="app-header">
             <h1 class="app-title">Expense Tracker</h1>
             <div class="controls-wrapper">
-                <div class="date-selector-wrapper">
-                    <select id="month-selector" aria-label="Select Month"></select>
-                    <select id="year-selector" aria-label="Select Year"></select>
-                </div>
+                <button id="date-picker-toggle-btn" class="date-picker-toggle"></button>
                 <div class="currency-selector-wrapper">
                     <select id="currency-selector">
                         <option value="USD" selected>$ USD</option>
@@ -30,6 +27,7 @@
                 <button id="theme-toggle-btn" class="theme-toggle" aria-label="Toggle theme"></button>
             </div>
         </header>
+
         <main>
             <section class="expense-form-container">
                 <div class="form-inputs">
@@ -62,6 +60,18 @@
             <div id="total-variable">Total Variable: $0.00</div>
             <div id="grand-total">Grand Total: $0.00</div>
         </footer>
+    </div>
+
+    <div id="date-picker-modal" class="date-picker-modal-container hidden">
+        <div id="modal-overlay" class="modal-overlay"></div>
+        <div class="date-picker-content">
+            <div class="modal-header">
+                <button id="prev-year-btn" class="year-nav-btn" aria-label="Previous year">‹</button>
+                <span id="displayed-year" class="displayed-year">2025</span>
+                <button id="next-year-btn" class="year-nav-btn" aria-label="Next year">›</button>
+            </div>
+            <div id="month-grid" class="month-grid"></div>
+        </div>
     </div>
 </body>
 </html>

@@ -7,10 +7,10 @@ body { font-family: var(--font-sans); background-color: var(--bg); color: var(--
 .app-container { max-width: 768px; margin: 2rem auto; padding: 1rem; }
 .app-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; margin-bottom: 2rem; flex-wrap: wrap; }
 .app-title { font-size: 1.75rem; font-weight: 700; }
-.controls-wrapper { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
-.date-selector-wrapper { display: flex; gap: 0.75rem; align-items: center; }
-#month-selector, #year-selector, #currency-selector { background: transparent; border: none; border-bottom: 1px solid var(--border); padding: 4px; border-radius: 0; cursor: pointer; font-size: 0.9rem; color: var(--text-secondary); }
-.currency-selector-wrapper { display: flex; align-items: center; }
+.controls-wrapper { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.date-picker-toggle { background-color: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 1rem; font-family: var(--font-sans); font-size: 0.9rem; font-weight: 500; color: var(--text-primary); cursor: pointer; transition: all 0.2s; }
+.date-picker-toggle:hover { border-color: var(--accent); color: var(--accent); }
+#currency-selector { background: transparent; border: none; padding: 4px; border-radius: 0; cursor: pointer; font-size: 0.9rem; color: var(--text-secondary); }
 .theme-toggle { display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text-secondary); cursor: pointer; width: 24px; height: 24px; }
 .theme-toggle svg { width: 100%; height: 100%; }
 .expense-form-container { background-color: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03); }
@@ -45,6 +45,20 @@ body { font-family: var(--font-sans); background-color: var(--bg); color: var(--
 #total-fixed { color: var(--danger); }
 #total-variable { color: var(--warning); }
 #grand-total { color: var(--text-primary); font-weight: 700; }
+.date-picker-modal-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; z-index: 1000; visibility: hidden; opacity: 0; transition: visibility 0.2s, opacity 0.2s ease-in-out; }
+.date-picker-modal-container:not(.hidden) { visibility: visible; opacity: 1; }
+.modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); cursor: pointer; }
+.date-picker-content { position: relative; background-color: var(--surface); border-radius: 12px; padding: 1.5rem; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.displayed-year { font-size: 1.25rem; font-weight: 700; color: var(--text-primary); }
+.year-nav-btn { background: none; border: 1px solid var(--border); border-radius: 50%; width: 32px; height: 32px; font-size: 1.5rem; line-height: 1; cursor: pointer; color: var(--text-secondary); transition: all 0.2s; }
+.year-nav-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.year-nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.month-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+.month-cell { padding: 1rem 0; text-align: center; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; font-size: 0.9rem; font-weight: 500; color: var(--text-secondary); transition: all 0.2s ease-in-out; }
+.month-cell:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+.month-cell.has-data { color: var(--text-primary); border-color: color-mix(in srgb, var(--accent) 50%, var(--border)); background-color: color-mix(in srgb, var(--accent) 8%, transparent); }
+.month-cell.is-selected { background-color: var(--accent); color: white; border-color: var(--accent); font-weight: 700; }
 @media (min-width: 768px) { .costs-display-area { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 600px) { .app-header { flex-direction: column; align-items: flex-start; gap: 1rem; } .form-actions { flex-direction: column; align-items: stretch; gap: 1rem; } }
 .costs-list.drag-over { border: 2px dashed var(--accent); background-color: color-mix(in srgb, var(--accent) 10%, transparent); }
