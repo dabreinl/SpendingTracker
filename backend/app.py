@@ -41,8 +41,20 @@ def create_app():
         database.add_cost(data['name'], float(data['amount']), description, data['type'], data['date'])
         return jsonify({'success': True}), 201
 
+    @app.route('/api/costs/<int:cost_id>', methods=['PUT'])
+    def update_cost(cost_id):
+        data = request.get_json()
+        required = ['name', 'amount']
+        if not data or not all(k in data for k in required):
+            return jsonify({'error': 'Missing name or amount'}), 400
+        description = data.get('description', None)
+        database.update_cost(cost_id, data['name'], float(data['amount']), description)
+        return jsonify({'success': True}), 200
+
     @app.route('/api/costs/<int:cost_id>', methods=['DELETE'])
-    def delete_cost(cost_id): database.delete_cost_by_id(cost_id); return jsonify({'success': True}), 200
+    def delete_cost(cost_id):
+        database.delete_cost_by_id(cost_id)
+        return jsonify({'success': True}), 200
 
     @app.route('/api/costs/clear/<string:cost_type>', methods=['DELETE'])
     def clear_costs(cost_type):
@@ -52,9 +64,11 @@ def create_app():
         database.delete_costs_by_type(cost_type, year=year, month=month)
         return jsonify({'success': True}), 200
         
-    @app.route('/api/costs/<int:cost_id>/type', methods=['PUT'])
+    @app.route('/api/costs/<int:cost_id>/type', methods=['PATCH'])
     def update_cost_category(cost_id):
         new_type = request.get_json().get('type')
+        if not new_type or new_type not in ['fixed', 'variable']:
+            return jsonify({'error': 'Invalid or missing type'}), 400
         database.update_cost_type(cost_id, new_type)
         return jsonify({'success': True}), 200
 

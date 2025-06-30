@@ -22,7 +22,6 @@
                 <button id="theme-toggle-btn" class="theme-toggle" aria-label="Toggle theme"></button>
             </div>
         </header>
-
         <main>
             <section class="expense-form-container">
                 <h2>Log a New Expense</h2>
@@ -44,44 +43,14 @@
                     <button id="open-import-modal-btn" class="import-btn" title="Quickly add recurring expenses from previous months">Import Spending</button>
                 </div>
             </section>
-
             <div class="costs-display-area">
                 <section id="fixed-costs" class="cost-section"><div class="section-header"><h2>Fixed Costs</h2><button id="clear-fixed-btn" class="clear-btn">Clear All</button></div><ul id="fixed-costs-list" class="costs-list"></ul></section>
                 <section id="variable-costs" class="cost-section"><div class="section-header"><h2>Variable Costs</h2><button id="clear-variable-btn" class="clear-btn">Clear All</button></div><ul id="variable-costs-list" class="costs-list"></ul></section>
             </div>
         </main>
-        
         <footer class="totals-footer"><div id="total-fixed"></div><div id="total-variable"></div><div id="grand-total"></div></footer>
     </div>
-    
-    <div id="date-picker-modal" class="date-picker-modal-container hidden">
-        <div id="modal-overlay" class="modal-overlay"></div>
-        <div class="date-picker-content">
-            <div class="modal-header date-picker-header">
-                <button id="prev-year-btn" class="year-nav-btn" aria-label="Previous year">‹</button>
-                <span id="displayed-year"></span>
-                <button id="next-year-btn" class="year-nav-btn" aria-label="Next year">›</button>
-            </div>
-            <div id="month-grid" class="month-grid"></div>
-        </div>
-    </div>
-    
-    <div id="import-modal" class="import-modal-container hidden">
-        <div id="import-modal-overlay" class="modal-overlay"></div>
-        <div class="import-modal-content">
-            <div class="modal-header import-header">
-                <div class="modal-header-main">
-                    <h3>Import Expenses</h3>
-                    <button id="import-modal-close-btn" class="modal-close-btn" aria-label="Close">×</button>
-                </div>
-                <p class="modal-subtitle">Select past expenses to add them to the current month.</p>
-            </div>
-            <div class="import-modal-body">
-                <div class="import-list-section"><h4>Fixed</h4><ul id="import-fixed-list" class="import-list"></ul></div>
-                <div class="import-list-section"><h4>Variable</h4><ul id="import-variable-list" class="import-list"></ul></div>
-            </div>
-            <div class="import-modal-footer"><button id="import-selected-btn" class="import-confirm-btn">Import Selected</button></div>
-        </div>
-    </div>
+    <div id="date-picker-modal" class="date-picker-modal-container hidden"><div id="modal-overlay" class="modal-overlay"></div><div class="date-picker-content"><div class="modal-header date-picker-header"><button id="prev-year-btn" class="year-nav-btn">‹</button><span id="displayed-year"></span><button id="next-year-btn" class="year-nav-btn">›</button></div><div id="month-grid" class="month-grid"></div></div></div>
+    <div id="import-modal" class="import-modal-container hidden"><div id="import-modal-overlay" class="modal-overlay"></div><div class="import-modal-content"><div class="modal-header import-header"><div class="modal-header-main"><h3>Import Expenses</h3><button id="import-modal-close-btn" class="modal-close-btn">×</button></div><p class="modal-subtitle">Select past expenses to add them to the current month.</p></div><div class="import-modal-body"><div class="import-list-section"><h4>Fixed</h4><ul id="import-fixed-list" class="import-list"></ul></div><div class="import-list-section"><h4>Variable</h4><ul id="import-variable-list" class="import-list"></ul></div></div><div class="import-modal-footer"><button id="import-selected-btn" class="import-confirm-btn">Import Selected</button></div></div></div>
 </body>
 </html>
