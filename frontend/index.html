@@ -3,80 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Financial Tracker</title>
+    <title>Aura Finance Tracker</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="script.js" defer></script>
 </head>
 <body>
     <div class="app-container">
         <header class="app-header">
-            <h1 class="app-title">Your Monthly Expense Tracker</h1>
+            <h1 class="app-title">Aura Finance</h1>
             <div class="controls-wrapper">
                 <button id="date-picker-toggle-btn" class="date-picker-toggle"></button>
                 <div class="currency-selector-wrapper">
-                    <select id="currency-selector"><option value="USD" selected>$ USD</option><option value="EUR">€ EUR</option><option value="GBP">£ GBP</option><option value="JPY">¥ JPY</option></select>
+                    <select id="currency-selector">
+                        <option value="USD" selected>$ USD</option>
+                        <option value="EUR">€ EUR</option>
+                        <option value="GBP">£ GBP</option>
+                        <option value="JPY">¥ JPY</option>
+                    </select>
                 </div>
                 <button id="theme-toggle-btn" class="theme-toggle" aria-label="Toggle theme"></button>
             </div>
         </header>
 
-        <main>
-            <section class="budget-container">
-                <h2>Monthly Budget</h2>
-                <div class="salary-input-group">
-                    <label for="salary-input">Monthly Income / Salary</label>
-                    <input type="number" id="salary-input" placeholder="e.g., 3000" min="0">
-                </div>
-                <div class="budget-sliders">
-                    <div class="budget-slider-group">
-                        <label for="fixed-budget-slider">Fixed Costs Budget: <span id="fixed-percent-display">40</span>%</label>
-                        <input type="range" id="fixed-budget-slider" min="0" max="100" value="40">
+        <main class="main-layout">
+            <div class="layout-column-left">
+                <section class="card budget-container">
+                    <h2 class="card-title">Monthly Budget</h2>
+                    <div class="salary-input-group">
+                        <label for="salary-input">Monthly Income / Salary</label>
+                        <div class="input-with-icon">
+                            <span>💰</span>
+                            <input type="number" id="salary-input" placeholder="e.g., 3000" min="0">
+                        </div>
                     </div>
-                    <div class="budget-slider-group">
-                        <label for="variable-budget-slider">Variable Costs Budget: <span id="variable-percent-display">30</span>%</label>
-                        <input type="range" id="variable-budget-slider" min="0" max="100" value="30">
+                    <div class="budget-sliders">
+                        <div class="budget-slider-group">
+                            <label for="fixed-budget-slider">Fixed Costs Budget: <span id="fixed-percent-display">40</span>%</label>
+                            <input type="range" id="fixed-budget-slider" min="0" max="100" value="40">
+                        </div>
+                        <div class="budget-slider-group">
+                            <label for="variable-budget-slider">Variable Costs Budget: <span id="variable-percent-display">30</span>%</label>
+                            <input type="range" id="variable-budget-slider" min="0" max="100" value="30">
+                        </div>
                     </div>
-                </div>
-                <!-- NEW: Save Budget Button -->
-                <div class="budget-save-action">
-                    <button id="save-budget-btn" class="save-budget-btn">Save Budget for this Month</button>
-                </div>
-            </section>
-            
-            <section class="expense-form-container">
-                <h2>Log a New Expense</h2>
-                <div class="form-inputs">
-                    <input type="text" id="expense-name-input" placeholder="e.g., Coffee, Rent, Train Ticket" required>
-                    <input type="number" id="expense-amount-input" placeholder="e.g., 4.50" min="0.01" step="0.01" required>
-                </div>
-                <div class="form-description">
-                    <textarea id="expense-description-input" placeholder="e.g., Meeting with Alex at the cafe" rows="2"></textarea>
-                </div>
-                <div class="form-actions">
-                    <div class="expense-type-chooser">
-                        <input type="radio" id="type-fixed" name="expense-type" value="fixed" checked><label for="type-fixed">Fixed</label>
-                        <input type="radio" id="type-variable" name="expense-type" value="variable"><label for="type-variable">Variable</label>
+                    <div class="budget-save-action">
+                        <button id="save-budget-btn" class="save-budget-btn">Save Budget</button>
                     </div>
-                    <button id="add-expense-btn">Add Expense</button>
+                </section>
+                
+                <section class="card expense-form-container">
+                    <h2 class="card-title">Log a New Expense</h2>
+                    <div class="form-inputs">
+                        <input type="text" id="expense-name-input" placeholder="e.g., Coffee, Rent, Train Ticket" required>
+                        <input type="number" id="expense-amount-input" placeholder="e.g., 4.50" min="0.01" step="0.01" required>
+                    </div>
+                    <div class="form-description">
+                        <textarea id="expense-description-input" placeholder="Add a description (optional)" rows="2"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <div class="expense-type-chooser">
+                            <input type="radio" id="type-fixed" name="expense-type" value="fixed" checked><label for="type-fixed">Fixed</label>
+                            <input type="radio" id="type-variable" name="expense-type" value="variable"><label for="type-variable">Variable</label>
+                        </div>
+                        <button id="add-expense-btn">Add Expense</button>
+                    </div>
+                    <div class="import-action-bar">
+                        <button id="open-import-modal-btn" class="import-btn" title="Quickly add recurring expenses from previous months">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            Import Spending
+                        </button>
+                    </div>
+                </section>
+            </div>
+
+            <div class="layout-column-right">
+                <div class="costs-display-area">
+                    <section id="fixed-costs" class="cost-section card">
+                        <div class="section-header">
+                            <h2>Fixed Costs</h2>
+                            <button id="clear-fixed-btn" class="clear-btn">Clear All</button>
+                        </div>
+                        <ul id="fixed-costs-list" class="costs-list"></ul>
+                        <div class="totals-footer" id="total-fixed-footer"></div>
+                    </section>
+                    <section id="variable-costs" class="cost-section card">
+                        <div class="section-header">
+                            <h2>Variable Costs</h2>
+                            <button id="clear-variable-btn" class="clear-btn">Clear All</button>
+                        </div>
+                        <ul id="variable-costs-list" class="costs-list"></ul>
+                        <div class="totals-footer" id="total-variable-footer"></div>
+                    </section>
                 </div>
-                <div class="import-action-bar">
-                    <button id="open-import-modal-btn" class="import-btn" title="Quickly add recurring expenses from previous months">Import Spending</button>
-                </div>
-            </section>
-            
-            <div class="costs-display-area">
-                <section id="fixed-costs" class="cost-section"><div class="section-header"><h2>Fixed Costs</h2><button id="clear-fixed-btn" class="clear-btn">Clear All</button></div><ul id="fixed-costs-list" class="costs-list"></ul></section>
-                <section id="variable-costs" class="cost-section"><div class="section-header"><h2>Variable Costs</h2><button id="clear-variable-btn" class="clear-btn">Clear All</button></div><ul id="variable-costs-list" class="costs-list"></ul></section>
             </div>
         </main>
-        
-        <footer class="totals-footer"><div id="total-fixed"></div><div id="total-variable"></div><div id="grand-total"></div></footer>
     </div>
     
-    <div id="date-picker-modal" class="date-picker-modal-container hidden"><div id="modal-overlay" class="modal-overlay"></div><div class="date-picker-content"><div class="modal-header date-picker-header"><button id="prev-year-btn" class="year-nav-btn">‹</button><span id="displayed-year"></span><button id="next-year-btn" class="year-nav-btn">›</button></div><div id="month-grid" class="month-grid"></div></div></div>
-    <div id="import-modal" class="import-modal-container hidden"><div id="import-modal-overlay" class="modal-overlay"></div><div class="import-modal-content"><div class="modal-header import-header"><div class="modal-header-main"><h3>Import Expenses</h3><button id="import-modal-close-btn" class="modal-close-btn">×</button></div><p class="modal-subtitle">Select past expenses to add them to the current month.</p></div><div class="import-modal-body"><div class="import-list-section"><h4>Fixed</h4><ul id="import-fixed-list" class="import-list"></ul></div><div class="import-list-section"><h4>Variable</h4><ul id="import-variable-list" class="import-list"></ul></div></div><div class="import-modal-footer"><button id="import-selected-btn" class="import-confirm-btn">Import Selected</button></div></div></div>
+    <!-- Modals -->
+    <div id="date-picker-modal" class="modal-container hidden">
+        <div id="modal-overlay" class="modal-overlay"></div>
+        <div class="modal-content date-picker-content">
+            <div class="modal-header date-picker-header">
+                <button id="prev-year-btn" class="year-nav-btn">‹</button>
+                <span id="displayed-year"></span>
+                <button id="next-year-btn" class="year-nav-btn">›</button>
+            </div>
+            <div id="month-grid" class="month-grid"></div>
+        </div>
+    </div>
+
+    <div id="import-modal" class="modal-container hidden">
+        <div id="import-modal-overlay" class="modal-overlay"></div>
+        <div class="modal-content import-modal-content">
+            <div class="modal-header import-header">
+                <div class="modal-header-main">
+                    <h3>Import Expenses</h3>
+                    <button id="import-modal-close-btn" class="modal-close-btn">×</button>
+                </div>
+                <p class="modal-subtitle">Select past expenses to add them to the current month.</p>
+            </div>
+            <div class="import-modal-body">
+                <div class="import-list-section">
+                    <h4>Fixed</h4>
+                    <ul id="import-fixed-list" class="import-list"></ul>
+                </div>
+                <div class="import-list-section">
+                    <h4>Variable</h4>
+                    <ul id="import-variable-list" class="import-list"></ul>
+                </div>
+            </div>
+            <div class="import-modal-footer">
+                <button id="import-selected-btn" class="import-confirm-btn">Import Selected</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirmation-modal" class="modal-container hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content confirmation-modal-content">
+            <div class="modal-header">
+                <h3 id="confirmation-title">Are you sure?</h3>
+            </div>
+            <p id="confirmation-message">This action cannot be undone.</p>
+            <div class="confirmation-actions">
+                <button id="confirm-cancel-btn" class="btn-secondary">Cancel</button>
+                <button id="confirm-action-btn" class="btn-danger">Confirm</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
