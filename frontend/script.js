@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearVariableBtn = document.getElementById('clear-variable-btn');
     const totalFixedFooter = document.getElementById('total-fixed-footer');
     const totalVariableFooter = document.getElementById('total-variable-footer');
+    const grandTotalEl = document.getElementById('grand-total');
     const currencySelector = document.getElementById('currency-selector');
     const themeToggleBtn = document.getElementById('theme-toggle-btn');
     const datePickerBtn = document.getElementById('date-picker-toggle-btn');
@@ -91,10 +92,10 @@ document.addEventListener('DOMContentLoaded', () => {
             body: JSON.stringify(budgetData),
         });
         saveBudgetBtn.classList.add('is-success');
-        saveBudgetBtn.textContent = 'Saved!';
+        saveBudgetBtn.querySelector('span').textContent = 'Saved!';
         setTimeout(() => {
             saveBudgetBtn.classList.remove('is-success');
-            saveBudgetBtn.textContent = 'Save Budget';
+            saveBudgetBtn.querySelector('span').textContent = 'Save Budget';
         }, 2000);
         renderCosts();
     };
@@ -110,10 +111,24 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const addCost = async (name, amount, description, type) => {
-        if (!name || !amount) {
-            alert('Please enter both name and amount.');
+        let isValid = true;
+        if (!name) {
+            expenseNameInput.classList.add('shake');
+            isValid = false;
+        }
+        if (!amount) {
+            expenseAmountInput.classList.add('shake');
+            isValid = false;
+        }
+
+        if(!isValid) {
+            setTimeout(() => {
+                expenseNameInput.classList.remove('shake');
+                expenseAmountInput.classList.remove('shake');
+            }, 500);
             return;
         }
+
         const dateForExpense = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01T12:00:00`;
         try {
             await fetchAPI(API_URL, {
@@ -184,10 +199,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const message = listElement === fixedCostsList ? 'Log your first fixed cost.' : 'Log your first variable cost.';
                 listElement.innerHTML = `<li class="empty-list-message">${message}</li>`;
             } else {
-                items.forEach(cost => {
+                items.forEach((cost, index) => {
                     const li = document.createElement('li');
                     li.dataset.id = cost.id;
                     li.draggable = true;
+                    li.style.animationDelay = `${index * 50}ms`;
                     if(cost.is_checked) li.classList.add('is-checked');
                     li.innerHTML = createCostItemHTML(cost);
                     listElement.appendChild(li);
@@ -209,6 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         renderTotal(totalFixedFooter, 'Fixed', totalFixed, fixedBudget);
         renderTotal(totalVariableFooter, 'Variable', totalVariable, variableBudget);
+        grandTotalEl.textContent = formatCurrency(totalFixed + totalVariable);
     };
     
     const renderTotal = (footerElement, label, total, budget) => {
@@ -452,8 +469,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const budgetData = await fetchBudget(selectedYear, selectedMonth);
             await fetchAndRenderCosts();
             updateBudgetUI(budgetData);
+            // Remove loading class after initial animations
+            setTimeout(() => body.classList.remove('loading'), 500);
         } catch (error) {
             console.error("Failed to initialize app:", error);
+            body.classList.remove('loading');
         }
     };
     

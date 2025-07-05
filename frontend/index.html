@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aura Finance Tracker</title>
+    <title>Momentum • Financial Tracker</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="script.js" defer></script>
 </head>
-<body>
+<body class="loading">
     <div class="app-container">
         <header class="app-header">
-            <h1 class="app-title">Aura Finance</h1>
+            <h1 class="app-title">Momentum</h1>
             <div class="controls-wrapper">
                 <button id="date-picker-toggle-btn" class="date-picker-toggle"></button>
                 <div class="currency-selector-wrapper">
@@ -33,32 +33,35 @@
                 <section class="card budget-container">
                     <h2 class="card-title">Monthly Budget</h2>
                     <div class="salary-input-group">
-                        <label for="salary-input">Monthly Income / Salary</label>
+                        <label for="salary-input">Monthly Income</label>
                         <div class="input-with-icon">
-                            <span>💰</span>
+                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                             <input type="number" id="salary-input" placeholder="e.g., 3000" min="0">
                         </div>
                     </div>
                     <div class="budget-sliders">
                         <div class="budget-slider-group">
-                            <label for="fixed-budget-slider">Fixed Costs Budget: <span id="fixed-percent-display">40</span>%</label>
+                            <label for="fixed-budget-slider">Fixed Costs: <span id="fixed-percent-display">40</span>%</label>
                             <input type="range" id="fixed-budget-slider" min="0" max="100" value="40">
                         </div>
                         <div class="budget-slider-group">
-                            <label for="variable-budget-slider">Variable Costs Budget: <span id="variable-percent-display">30</span>%</label>
+                            <label for="variable-budget-slider">Variable Costs: <span id="variable-percent-display">30</span>%</label>
                             <input type="range" id="variable-budget-slider" min="0" max="100" value="30">
                         </div>
                     </div>
                     <div class="budget-save-action">
-                        <button id="save-budget-btn" class="save-budget-btn">Save Budget</button>
+                        <button id="save-budget-btn" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                            <span>Save Budget</span>
+                        </button>
                     </div>
                 </section>
                 
                 <section class="card expense-form-container">
-                    <h2 class="card-title">Log a New Expense</h2>
+                    <h2 class="card-title">Log New Expense</h2>
                     <div class="form-inputs">
-                        <input type="text" id="expense-name-input" placeholder="e.g., Coffee, Rent, Train Ticket" required>
-                        <input type="number" id="expense-amount-input" placeholder="e.g., 4.50" min="0.01" step="0.01" required>
+                        <input type="text" id="expense-name-input" placeholder="Expense Name (e.g., Coffee)" required>
+                        <input type="number" id="expense-amount-input" placeholder="Amount" min="0.01" step="0.01" required>
                     </div>
                     <div class="form-description">
                         <textarea id="expense-description-input" placeholder="Add a description (optional)" rows="2"></textarea>
@@ -68,18 +71,19 @@
                             <input type="radio" id="type-fixed" name="expense-type" value="fixed" checked><label for="type-fixed">Fixed</label>
                             <input type="radio" id="type-variable" name="expense-type" value="variable"><label for="type-variable">Variable</label>
                         </div>
-                        <button id="add-expense-btn">Add Expense</button>
-                    </div>
-                    <div class="import-action-bar">
-                        <button id="open-import-modal-btn" class="import-btn" title="Quickly add recurring expenses from previous months">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                            Import Spending
+                        <button id="add-expense-btn" class="btn btn-primary">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            <span>Add Expense</span>
                         </button>
                     </div>
                 </section>
             </div>
 
             <div class="layout-column-right">
+                <div class="grand-total-container card">
+                    <span class="grand-total-label">Total Spending</span>
+                    <span id="grand-total" class="grand-total-amount">$0.00</span>
+                </div>
                 <div class="costs-display-area">
                     <section id="fixed-costs" class="cost-section card">
                         <div class="section-header">
@@ -97,6 +101,12 @@
                         <ul id="variable-costs-list" class="costs-list"></ul>
                         <div class="totals-footer" id="total-variable-footer"></div>
                     </section>
+                </div>
+                 <div class="import-action-bar">
+                    <button id="open-import-modal-btn" class="import-btn" title="Quickly add recurring expenses from previous months">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        Import Spending from Past Months
+                    </button>
                 </div>
             </div>
         </main>
@@ -136,7 +146,7 @@
                 </div>
             </div>
             <div class="import-modal-footer">
-                <button id="import-selected-btn" class="import-confirm-btn">Import Selected</button>
+                <button id="import-selected-btn" class="btn btn-primary">Import Selected</button>
             </div>
         </div>
     </div>
@@ -149,8 +159,8 @@
             </div>
             <p id="confirmation-message">This action cannot be undone.</p>
             <div class="confirmation-actions">
-                <button id="confirm-cancel-btn" class="btn-secondary">Cancel</button>
-                <button id="confirm-action-btn" class="btn-danger">Confirm</button>
+                <button id="confirm-cancel-btn" class="btn btn-secondary">Cancel</button>
+                <button id="confirm-action-btn" class="btn btn-danger">Confirm</button>
             </div>
         </div>
     </div>
