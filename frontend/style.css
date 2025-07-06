@@ -104,7 +104,6 @@ body { font-family: var(--font-sans); background-color: var(--bg); color: var(--
 .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 .btn-primary.is-success { background-color: var(--success); }
 .btn-primary.is-success:hover { background-color: color-mix(in srgb, var(--success) 85%, black); }
-/* MODIFIED: Added is-error class for button feedback */
 .btn-primary.is-error { background-color: var(--danger); }
 .btn-primary.is-error:hover { background-color: color-mix(in srgb, var(--danger) 85%, black); }
 .btn span { line-height: 1; }
@@ -155,10 +154,11 @@ input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; background: v
 .totals-footer .over-budget .progress-bar { animation: pulse-danger 1.5s infinite; }
 @keyframes pulse-danger { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.2); } }
 
-/* --- Import Button Bar --- */
-.import-action-bar { animation: fadeInUp 0.6s var(--transition-slow) backwards; animation-delay: 0.4s; }
-.import-btn { width: 100%; background-color: var(--surface); border: 1px dashed var(--border); color: var(--text-secondary); padding: 0.875rem; border-radius: var(--border-radius-md); font-weight: 500; cursor: pointer; transition: all var(--transition-fast); display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
-.import-btn:hover { border-color: var(--accent); border-style: solid; color: var(--accent); background-color: color-mix(in srgb, var(--accent) 8%, transparent); transform: translateY(-2px); box-shadow: 0 4px 10px -2px hsl(var(--shadow-color) / 0.1); }
+/* --- Action Button Bar --- */
+/* MODIFIED: Added styles for the new action button container and buttons */
+.action-bar-container { display: flex; gap: 1rem; animation: fadeInUp 0.6s var(--transition-slow) backwards; animation-delay: 0.4s; }
+.action-btn { flex: 1; background-color: var(--surface); border: 1px dashed var(--border); color: var(--text-secondary); padding: 0.875rem; border-radius: var(--border-radius-md); font-weight: 500; cursor: pointer; transition: all var(--transition-fast); display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+.action-btn:hover { border-color: var(--accent); border-style: solid; color: var(--accent); background-color: color-mix(in srgb, var(--accent) 8%, transparent); transform: translateY(-2px); box-shadow: 0 4px 10px -2px hsl(var(--shadow-color) / 0.1); }
 
 /* --- Modals & Overlays --- */
 .modal-overlay { background-color: hsl(var(--shadow-color-dark) / 0.5); backdrop-filter: blur(8px); }
@@ -200,7 +200,9 @@ li:not(.is-editing) .save-btn, li:not(.is-editing) .cancel-btn { display: none; 
 .modal-content { position: relative; background-color: var(--surface); border-radius: var(--border-radius-lg); padding: 1.5rem; width: 90%; max-width: 420px; transition: transform var(--transition-slow); }
 .modal-container:not(.hidden) .modal-content { transform: scale(1); }
 .modal-container.hidden .modal-content { transform: scale(0.95); }
-.modal-header { margin-bottom: 1.5rem; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.modal-header h3 { font-size: 1.125rem; font-weight: 600; }
+.modal-close-btn { background: none; border: none; font-size: 1.75rem; line-height: 1; color: var(--text-secondary); cursor: pointer; transition: all var(--transition-fast); }
 .date-picker-header { display: flex; justify-content: space-between; align-items: center; }
 .displayed-year { font-size: 1.25rem; font-weight: 700; }
 .year-nav-btn { background: none; border: none; border-radius: 50%; width: 36px; height: 36px; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); transition: all var(--transition-fast); }
@@ -213,7 +215,6 @@ li:not(.is-editing) .save-btn, li:not(.is-editing) .cancel-btn { display: none; 
 .import-modal-content { max-width: 600px; max-height: 80vh; display: flex; flex-direction: column; }
 .modal-header-main { display: flex; justify-content: space-between; align-items: center; }
 .modal-subtitle { font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.25rem; }
-.modal-close-btn { background: none; border: none; font-size: 1.75rem; color: var(--text-secondary); cursor: pointer; transition: all var(--transition-fast); }
 .import-modal-body { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; overflow-y: auto; padding: 1rem 0.25rem; margin: 1rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 .import-list-section h4 { margin-bottom: 0.75rem; }
 .import-list { list-style: none; display: flex; flex-direction: column; gap: 0.25rem; }
@@ -232,5 +233,8 @@ li:not(.is-editing) .save-btn, li:not(.is-editing) .cancel-btn { display: none; 
 .confirmation-actions button { flex-grow: 1; font-family: var(--font-sans); font-weight: 600; border: none; padding: 0.6rem 1.25rem; border-radius: var(--border-radius-md); cursor: pointer; transition: all var(--transition-fast); }
 .costs-list.drag-over { border: 2px dashed var(--accent); background-color: color-mix(in srgb, var(--accent) 10%, transparent); }
 .costs-list li.dragging { opacity: 0.5; background-color: var(--bg); box-shadow: none; transform: scale(0.98); }
+/* MODIFIED: Added styles for analysis modal */
+.analysis-modal-content { max-width: 800px; width: 95%; }
+.chart-container { position: relative; width: 100%; height: 400px; }
 @media (max-width: 1023px) { .app-container { padding: 1rem; } .layout-column-left { order: 2; } .layout-column-right { order: 1; } }
-@media (max-width: 600px) { .app-header { flex-direction: column; align-items: flex-start; gap: 1.5rem; } .form-actions { flex-direction: column; align-items: stretch; gap: 1rem; } .import-modal-body { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .app-header { flex-direction: column; align-items: flex-start; gap: 1.5rem; } .form-actions { flex-direction: column; align-items: stretch; gap: 1rem; } .import-modal-body { grid-template-columns: 1fr; } .action-bar-container { flex-direction: column; } }

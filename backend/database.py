@@ -115,7 +115,6 @@ def update_checked_status(cost_id, is_checked):
 
 
 def get_budget(year, month):
-    # MODIFIED: Select the new savings_goal column
     budget = (
         get_db()
         .execute(
@@ -128,7 +127,6 @@ def get_budget(year, month):
 
 
 def save_budget(year, month, salary, savings_goal, fixed_percent, variable_percent):
-    # MODIFIED: Accept savings_goal and include it in the query
     db = get_db()
     db.execute(
         """
@@ -138,3 +136,8 @@ def save_budget(year, month, salary, savings_goal, fixed_percent, variable_perce
         (year, month, salary, savings_goal, fixed_percent, variable_percent),
     )
     db.commit()
+
+# MODIFIED: Added function to get all historical budget data
+def get_all_budgets_history():
+    query = "SELECT year, month, salary FROM budgets WHERE salary > 0 ORDER BY year, month"
+    return [dict(row) for row in get_db().execute(query).fetchall()]
