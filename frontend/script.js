@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const importVariableList = document.getElementById('import-variable-list');
     const importSelectedBtn = document.getElementById('import-selected-btn');
     const salaryInput = document.getElementById('salary-input');
+    const savingsGoalInput = document.getElementById('savings-goal-input');
     const fixedBudgetSlider = document.getElementById('fixed-budget-slider');
     const variableBudgetSlider = document.getElementById('variable-budget-slider');
     const fixedPercentDisplay = document.getElementById('fixed-percent-display');
@@ -74,31 +75,47 @@ document.addEventListener('DOMContentLoaded', () => {
             return response.json();
         } catch (error) {
             console.error('API Error:', error);
-            // Here you could implement a user-facing error message (e.g., a toast notification)
             throw error;
         }
     };
 
     const fetchBudget = (year, month) => fetchAPI(`${API_URL}/budget/${year}/${month}`);
+    
+    // MODIFIED: Added try...catch block and more robust feedback
     const saveBudget = async () => {
+        saveBudgetBtn.disabled = true;
         const budgetData = {
             salary: parseFloat(salaryInput.value) || 0,
+            savings_goal: parseFloat(savingsGoalInput.value) || 0,
             fixed_percent: parseInt(fixedBudgetSlider.value),
             variable_percent: parseInt(variableBudgetSlider.value)
         };
-        await fetchAPI(`${API_URL}/budget/${selectedYear}/${selectedMonth}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(budgetData),
-        });
-        saveBudgetBtn.classList.add('is-success');
-        saveBudgetBtn.querySelector('span').textContent = 'Saved!';
-        setTimeout(() => {
+
+        try {
+            await fetchAPI(`${API_URL}/budget/${selectedYear}/${selectedMonth}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(budgetData),
+            });
+            
+            saveBudgetBtn.classList.remove('is-error');
+            saveBudgetBtn.classList.add('is-success');
+            saveBudgetBtn.querySelector('span').textContent = 'Saved!';
+        } catch (error) {
+            console.error("Failed to save budget:", error);
             saveBudgetBtn.classList.remove('is-success');
-            saveBudgetBtn.querySelector('span').textContent = 'Save Budget';
-        }, 2000);
-        renderCosts();
+            saveBudgetBtn.classList.add('is-error');
+            saveBudgetBtn.querySelector('span').textContent = 'Failed!';
+        } finally {
+            setTimeout(() => {
+                saveBudgetBtn.classList.remove('is-success', 'is-error');
+                saveBudgetBtn.querySelector('span').textContent = 'Save Budget';
+                saveBudgetBtn.disabled = false;
+            }, 2000);
+            renderCosts();
+        }
     };
+
     const fetchMonthlySummary = () => fetchAPI(`${API_URL}/summary`).then(data => { monthlySummary = data; });
     
     const fetchAndRenderCosts = async () => {
@@ -248,13 +265,17 @@ document.addEventListener('DOMContentLoaded', () => {
         footerElement.classList.toggle('over-budget', isOverBudget);
     };
 
+    // MODIFIED: Made function more robust to reset UI properly
     const updateBudgetUI = (budgetData) => {
-        if (!budgetData) return;
-        salaryInput.value = budgetData.salary > 0 ? budgetData.salary : '';
-        fixedBudgetSlider.value = budgetData.fixed_percent;
-        variableBudgetSlider.value = budgetData.variable_percent;
-        fixedPercentDisplay.textContent = budgetData.fixed_percent;
-        variablePercentDisplay.textContent = budgetData.variable_percent;
+        const defaults = { salary: 0, savings_goal: 0, fixed_percent: 40, variable_percent: 30 };
+        const data = { ...defaults, ...budgetData };
+
+        salaryInput.value = data.salary > 0 ? data.salary : '';
+        savingsGoalInput.value = data.savings_goal > 0 ? data.savings_goal : '';
+        fixedBudgetSlider.value = data.fixed_percent;
+        variableBudgetSlider.value = data.variable_percent;
+        fixedPercentDisplay.textContent = data.fixed_percent;
+        variablePercentDisplay.textContent = data.variable_percent;
         renderCosts();
     };
 
@@ -305,10 +326,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <label for="${checkboxId}" class="import-item-label">
                     <div class="custom-checkbox">
                         <input type="checkbox" id="${checkboxId}" 
-                               data-name="${cost.name}" 
-                               data-amount="${cost.amount}" 
-                               data-type="${cost.cost_type}" 
-                               data-description="${cost.description || ''}">
+                                data-name="${cost.name}" 
+                                data-amount="${cost.amount}" 
+                                data-type="${cost.cost_type}" 
+                                data-description="${cost.description || ''}">
                         <span class="visual">${checkIcon}</span>
                     </div>
                     <div class="import-item-details">
@@ -347,6 +368,56 @@ document.addEventListener('DOMContentLoaded', () => {
         currentlyEditingId = null;
     };
 
+    const updateSlidersFromSavings = () => {
+        const salary = parseFloat(salaryInput.value) || 0;
+        const savings = parseFloat(savingsGoalInput.value) || 0;
+
+        if (salary === 0) return;
+
+        const spendableAmount = Math.max(0, salary - savings);
+        const spendablePercent = Math.round((spendableAmount / salary) * 100);
+
+        const halfSpendPercent = Math.floor(spendablePercent / 2);
+        fixedBudgetSlider.value = halfSpendPercent;
+        variableBudgetSlider.value = spendablePercent - halfSpendPercent;
+        
+        fixedPercentDisplay.textContent = fixedBudgetSlider.value;
+        variablePercentDisplay.textContent = variableBudgetSlider.value;
+        renderCosts();
+    };
+
+    const handleSliderAdjustment = (e) => {
+        const salary = parseFloat(salaryInput.value) || 0;
+        const savings = parseFloat(savingsGoalInput.value) || 0;
+
+        if (salary === 0) {
+            fixedPercentDisplay.textContent = fixedBudgetSlider.value;
+            variablePercentDisplay.textContent = variableBudgetSlider.value;
+            renderCosts();
+            return;
+        }
+
+        const spendableAmount = Math.max(0, salary - savings);
+        const maxCombinedPercent = Math.round((spendableAmount / salary) * 100);
+
+        const changedSlider = e.target;
+        const otherSlider = (changedSlider === fixedBudgetSlider) ? variableBudgetSlider : fixedBudgetSlider;
+        let changedValue = parseInt(changedSlider.value);
+        
+        let otherValue = maxCombinedPercent - changedValue;
+        if (otherValue < 0) {
+            changedSlider.value = maxCombinedPercent;
+            otherSlider.value = 0;
+        } else {
+            otherSlider.value = otherValue;
+        }
+
+        fixedPercentDisplay.textContent = fixedBudgetSlider.value;
+        variablePercentDisplay.textContent = variableBudgetSlider.value;
+        renderCosts();
+    };
+
+
     // --- Event Listeners ---
     addExpenseBtn.addEventListener('click', () => { const selectedType = document.querySelector('input[name="expense-type"]:checked').value; addCost(expenseNameInput.value, expenseAmountInput.value, expenseDescriptionInput.value, selectedType); });
     datePickerBtn.addEventListener('click', () => { displayedYearInPicker = selectedYear; renderMonthGrid(displayedYearInPicker); openModal(datePickerModal); });
@@ -380,23 +451,13 @@ document.addEventListener('DOMContentLoaded', () => {
     confirmCancelBtn.addEventListener('click', () => closeModal(confirmationModal));
     currencySelector.addEventListener('change', (e) => { currentCurrency = e.target.value; renderCosts(); });
     themeToggleBtn.addEventListener('click', () => { const newTheme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; applyTheme(newTheme); });
-    salaryInput.addEventListener('input', renderCosts);
+    
+    salaryInput.addEventListener('input', updateSlidersFromSavings);
+    savingsGoalInput.addEventListener('input', updateSlidersFromSavings);
     [fixedBudgetSlider, variableBudgetSlider].forEach(slider => {
-        slider.addEventListener('input', (e) => {
-            let fixedVal = parseInt(fixedBudgetSlider.value);
-            let varVal = parseInt(variableBudgetSlider.value);
-            if (fixedVal + varVal > 100) {
-                if (e.target === fixedBudgetSlider) {
-                    variableBudgetSlider.value = 100 - fixedVal;
-                } else {
-                    fixedBudgetSlider.value = 100 - varVal;
-                }
-            }
-            fixedPercentDisplay.textContent = fixedBudgetSlider.value;
-            variablePercentDisplay.textContent = variableBudgetSlider.value;
-            renderCosts();
-        });
+        slider.addEventListener('input', handleSliderAdjustment);
     });
+
     saveBudgetBtn.addEventListener('click', saveBudget);
 
     // Drag & Drop Logic
@@ -415,7 +476,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const listItem = target.closest('li');
         if (!listItem) return;
         
-        // Checkbox click
         if (target.classList.contains('cost-checkbox') || target.closest('.custom-checkbox')) {
             const checkbox = listItem.querySelector('.cost-checkbox');
             const costId = listItem.dataset.id;
@@ -425,7 +485,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Action buttons
         const actionButton = target.closest('.item-actions button');
         if (!actionButton) return;
         const costId = listItem.dataset.id;
@@ -469,7 +528,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const budgetData = await fetchBudget(selectedYear, selectedMonth);
             await fetchAndRenderCosts();
             updateBudgetUI(budgetData);
-            // Remove loading class after initial animations
             setTimeout(() => body.classList.remove('loading'), 500);
         } catch (error) {
             console.error("Failed to initialize app:", error);

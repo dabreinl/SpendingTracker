@@ -39,6 +39,13 @@
                             <input type="number" id="salary-input" placeholder="e.g., 3000" min="0">
                         </div>
                     </div>
+                    <div class="salary-input-group">
+                        <label for="savings-goal-input">Monthly Savings Goal</label>
+                        <div class="input-with-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                            <input type="number" id="savings-goal-input" placeholder="e.g., 500" min="0">
+                        </div>
+                    </div>
                     <div class="budget-sliders">
                         <div class="budget-slider-group">
                             <label for="fixed-budget-slider">Fixed Costs: <span id="fixed-percent-display">40</span>%</label>
@@ -112,7 +119,6 @@
         </main>
     </div>
     
-    <!-- Modals -->
     <div id="date-picker-modal" class="modal-container hidden">
         <div id="modal-overlay" class="modal-overlay"></div>
         <div class="modal-content date-picker-content">
