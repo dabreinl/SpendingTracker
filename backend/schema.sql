@@ -16,6 +16,8 @@ CREATE TABLE budgets (
     year INTEGER NOT NULL,
     month INTEGER NOT NULL,
     salary REAL NOT NULL DEFAULT 0,
+    -- MODIFIED: Added savings_goal column
+    savings_goal REAL NOT NULL DEFAULT 0,
     fixed_percent INTEGER NOT NULL DEFAULT 40,
     variable_percent INTEGER NOT NULL DEFAULT 30,
     UNIQUE(year, month)

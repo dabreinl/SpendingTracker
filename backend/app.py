@@ -16,22 +16,24 @@ def create_app():
 
     database.init_app(app)
 
-    # --- MODIFIED: Corrected the URL path for both budget routes ---
     @app.route("/api/costs/budget/<int:year>/<int:month>", methods=["GET"])
     def get_budget(year, month):
         budget = database.get_budget(year, month)
         if budget:
             return jsonify(budget)
-        return jsonify({"salary": 0, "fixed_percent": 40, "variable_percent": 30})
+        # MODIFIED: Added savings_goal to default response
+        return jsonify({"salary": 0, "savings_goal": 0, "fixed_percent": 40, "variable_percent": 30})
 
     @app.route("/api/costs/budget/<int:year>/<int:month>", methods=["POST"])
     def save_budget(year, month):
         data = request.get_json()
-        required = ["salary", "fixed_percent", "variable_percent"]
+        # MODIFIED: Added savings_goal to required fields
+        required = ["salary", "savings_goal", "fixed_percent", "variable_percent"]
         if not data or not all(k in data for k in required):
             return jsonify({"error": "Missing data"}), 400
+        # MODIFIED: Pass savings_goal to the database function
         database.save_budget(
-            year, month, data["salary"], data["fixed_percent"], data["variable_percent"]
+            year, month, data["salary"], data["savings_goal"], data["fixed_percent"], data["variable_percent"]
         )
         return jsonify({"success": True}), 200
 

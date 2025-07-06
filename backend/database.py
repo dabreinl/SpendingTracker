@@ -115,10 +115,11 @@ def update_checked_status(cost_id, is_checked):
 
 
 def get_budget(year, month):
+    # MODIFIED: Select the new savings_goal column
     budget = (
         get_db()
         .execute(
-            "SELECT salary, fixed_percent, variable_percent FROM budgets WHERE year = ? AND month = ?",
+            "SELECT salary, savings_goal, fixed_percent, variable_percent FROM budgets WHERE year = ? AND month = ?",
             (year, month),
         )
         .fetchone()
@@ -126,13 +127,14 @@ def get_budget(year, month):
     return dict(budget) if budget else None
 
 
-def save_budget(year, month, salary, fixed_percent, variable_percent):
+def save_budget(year, month, salary, savings_goal, fixed_percent, variable_percent):
+    # MODIFIED: Accept savings_goal and include it in the query
     db = get_db()
     db.execute(
         """
-        INSERT INTO budgets (year, month, salary, fixed_percent, variable_percent) VALUES (?, ?, ?, ?, ?)
-        ON CONFLICT(year, month) DO UPDATE SET salary=excluded.salary, fixed_percent=excluded.fixed_percent, variable_percent=excluded.variable_percent
+        INSERT INTO budgets (year, month, salary, savings_goal, fixed_percent, variable_percent) VALUES (?, ?, ?, ?, ?, ?)
+        ON CONFLICT(year, month) DO UPDATE SET salary=excluded.salary, savings_goal=excluded.savings_goal, fixed_percent=excluded.fixed_percent, variable_percent=excluded.variable_percent
         """,
-        (year, month, salary, fixed_percent, variable_percent),
+        (year, month, salary, savings_goal, fixed_percent, variable_percent),
     )
     db.commit()
