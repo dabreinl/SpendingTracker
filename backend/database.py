@@ -137,7 +137,21 @@ def save_budget(year, month, salary, savings_goal, fixed_percent, variable_perce
     )
     db.commit()
 
-# MODIFIED: Added function to get all historical budget data
+
 def get_all_budgets_history():
     query = "SELECT year, month, salary FROM budgets WHERE salary > 0 ORDER BY year, month"
+    return [dict(row) for row in get_db().execute(query).fetchall()]
+
+# MODIFIED: Added function to get historical costs grouped by month and type
+def get_costs_history():
+    query = """
+        SELECT
+            strftime('%Y', created_at) as year,
+            strftime('%m', created_at) as month,
+            cost_type,
+            SUM(amount) as total
+        FROM costs
+        GROUP BY year, month, cost_type
+        ORDER BY year, month
+    """
     return [dict(row) for row in get_db().execute(query).fetchall()]

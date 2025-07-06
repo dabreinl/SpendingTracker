@@ -34,10 +34,15 @@ def create_app():
         )
         return jsonify({"success": True}), 200
 
-    # MODIFIED: Added new route for income history
     @app.route("/api/budgets/history", methods=["GET"])
     def get_budgets_history():
         history = database.get_all_budgets_history()
+        return jsonify(history)
+
+    # MODIFIED: Added new route for costs history
+    @app.route("/api/costs/history", methods=["GET"])
+    def get_costs_history():
+        history = database.get_costs_history()
         return jsonify(history)
 
     # --- Other routes remain unchanged ---
