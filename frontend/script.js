@@ -40,10 +40,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmationMessage = document.getElementById('confirmation-message');
     const confirmActionBtn = document.getElementById('confirm-action-btn');
     const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
-    const analyzeIncomeBtn = document.getElementById('analyze-income-btn');
+    const analyzeDataBtn = document.getElementById('analyze-data-btn');
     const analysisModal = document.getElementById('analysis-modal');
+    const analysisTitle = document.getElementById('analysis-title');
     const analysisModalCloseBtn = document.getElementById('analysis-modal-close-btn');
-    const incomeChartCanvas = document.getElementById('income-chart').getContext('2d');
+    const analysisChooserModal = document.getElementById('analysis-chooser-modal');
+    const analysisChooserCloseBtn = document.getElementById('analysis-chooser-close-btn');
+    const analysisOptionsGrid = document.querySelector('.analysis-options-grid');
 
     // --- Icons ---
     const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
@@ -62,8 +65,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let monthlySummary = [];
     let currentlyEditingId = null;
     let confirmCallback = null;
-    let incomeChartInstance = null;
-    let lastIncomeHistory = null; // To store data for theme-change redraw
+    let analysisChartInstance = null;
+    let lastChartData = null;
+    let lastChartTitle = null;
 
     // --- Utility Functions ---
     const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: currentCurrency, minimumFractionDigits: 2 }).format(amount);
@@ -125,6 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const fetchMonthlySummary = () => fetchAPI(`${API_URL}/summary`).then(data => { monthlySummary = data; });
     
     const fetchIncomeHistory = () => fetchAPI('/api/budgets/history');
+    const fetchCostsHistory = () => fetchAPI('/api/costs/history');
 
     const fetchAndRenderCosts = async () => {
         if (!selectedYear || !selectedMonth) return;
@@ -418,15 +423,28 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCosts();
     };
     
-    const processIncomeData = (history) => {
-        if (!history || history.length === 0) {
-            lastIncomeHistory = null;
-            return null;
-        }
+    const processHistoryData = (incomeHistory, costsHistory, chartType) => {
+        const allEntries = [
+            ...incomeHistory.map(i => ({ year: i.year, month: i.month })),
+            ...(costsHistory || []).map(c => ({ year: parseInt(c.year), month: parseInt(c.month) }))
+        ];
 
-        const dataMap = new Map(history.map(item => [`${item.year}-${item.month}`, item.salary]));
-        const firstEntry = history[0];
-        const lastEntry = history[history.length - 1];
+        if (allEntries.length === 0) return null;
+
+        allEntries.sort((a, b) => a.year - b.year || a.month - b.month);
+
+        const firstEntry = allEntries[0];
+        const lastEntry = allEntries[allEntries.length - 1];
+
+        const incomeMap = new Map(incomeHistory.map(item => [`${item.year}-${item.month}`, item.salary]));
+        const costsMap = new Map();
+        if (costsHistory) {
+            costsHistory.forEach(item => {
+                const key = `${item.year}-${parseInt(item.month, 10)}`;
+                if (!costsMap.has(key)) costsMap.set(key, {});
+                costsMap.get(key)[item.cost_type] = item.total;
+            });
+        }
 
         let currentDate = new Date(firstEntry.year, firstEntry.month - 1);
         const lastDate = new Date(lastEntry.year, lastEntry.month - 1);
@@ -440,31 +458,51 @@ document.addEventListener('DOMContentLoaded', () => {
             const key = `${year}-${month}`;
             
             labels.push(`${shortMonthNames[month - 1]} ${String(year).slice(-2)}`);
-            data.push(dataMap.get(key) || 0);
+            const monthlyCosts = costsMap.get(key) || {};
 
+            switch(chartType) {
+                case 'income':
+                    data.push(incomeMap.get(key) || 0);
+                    break;
+                case 'fixed':
+                    data.push(monthlyCosts.fixed || 0);
+                    break;
+                case 'variable':
+                    data.push(monthlyCosts.variable || 0);
+                    break;
+                case 'overall':
+                    data.push((monthlyCosts.fixed || 0) + (monthlyCosts.variable || 0));
+                    break;
+            }
             currentDate.setMonth(currentDate.getMonth() + 1);
         }
+        
         const processedData = { labels, data };
-        lastIncomeHistory = processedData; // Cache the data
+        lastChartData = processedData;
         return processedData;
     };
-
-    // MODIFIED: Overhauled chart rendering to be fully theme-aware
-    const renderIncomeChart = (processedData) => {
-        if (incomeChartInstance) {
-            incomeChartInstance.destroy();
+    
+    // MODIFIED: Corrected the chart rendering logic to prevent canvas destruction
+    const renderChart = (processedData, chartTitle) => {
+        if (analysisChartInstance) {
+            analysisChartInstance.destroy();
         }
+        
+        analysisTitle.textContent = chartTitle;
+        lastChartTitle = chartTitle;
 
-        const chartContainer = incomeChartCanvas.canvas.parentElement;
-        const existingMessage = chartContainer.querySelector('.empty-list-message');
-        if (existingMessage) {
-            existingMessage.remove();
-        }
-
-        if (!processedData) {
-            chartContainer.innerHTML = '<p class="empty-list-message" style="padding: 2rem 1rem;">No income data available to analyze. Please set a monthly income first.</p>';
+        const chartContainer = document.querySelector('.chart-container');
+        
+        // If there's no data, display a message and exit.
+        if (!processedData || processedData.data.every(d => d === 0)) {
+            chartContainer.innerHTML = `<p class="empty-list-message" style="padding: 2rem 1rem;">No data available for "${chartTitle}".</p>`;
             return;
         }
+        
+        // If we have data, ensure the canvas exists before drawing.
+        chartContainer.innerHTML = '<canvas id="analysis-chart"></canvas>';
+        const currentCanvas = document.getElementById('analysis-chart');
+        const currentCtx = currentCanvas.getContext('2d');
         
         const bodyStyles = getComputedStyle(document.body);
         const gridColor = bodyStyles.getPropertyValue('--border').trim();
@@ -473,15 +511,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const accentColor = bodyStyles.getPropertyValue('--accent').trim();
         const surfaceColor = bodyStyles.getPropertyValue('--surface').trim();
 
-        incomeChartInstance = new Chart(incomeChartCanvas, {
+        analysisChartInstance = new Chart(currentCtx, {
             type: 'line',
             data: {
                 labels: processedData.labels,
                 datasets: [{
-                    label: 'Monthly Income',
+                    label: chartTitle,
                     data: processedData.data,
                     borderColor: accentColor,
-                    backgroundColor: `${accentColor}33`, // Accent color with ~20% opacity
+                    backgroundColor: `${accentColor}33`,
                     fill: true,
                     tension: 0.3,
                     pointBackgroundColor: accentColor,
@@ -495,9 +533,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        display: false
-                    },
+                    legend: { display: false },
                     tooltip: {
                         backgroundColor: surfaceColor,
                         titleColor: textColor,
@@ -529,11 +565,34 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    const generateAndShowChart = async (chartType) => {
+        closeModal(analysisChooserModal);
+        analysisTitle.textContent = 'Loading Chart Data...';
+        // Clear previous chart/message before showing modal
+        document.querySelector('.chart-container').innerHTML = '<canvas id="analysis-chart"></canvas>';
+        openModal(analysisModal);
+
+        const [incomeHistory, costsHistory] = await Promise.all([
+            fetchIncomeHistory(),
+            fetchCostsHistory()
+        ]);
+        
+        const chartTitles = {
+            income: 'Income History',
+            fixed: 'Fixed Costs History',
+            variable: 'Variable Costs History',
+            overall: 'Overall Costs History'
+        };
+
+        const processedData = processHistoryData(incomeHistory, costsHistory, chartType);
+        renderChart(processedData, chartTitles[chartType]);
+    };
+
     // --- Event Listeners ---
     addExpenseBtn.addEventListener('click', () => { const selectedType = document.querySelector('input[name="expense-type"]:checked').value; addCost(expenseNameInput.value, expenseAmountInput.value, expenseDescriptionInput.value, selectedType); });
     datePickerBtn.addEventListener('click', () => { displayedYearInPicker = selectedYear; renderMonthGrid(displayedYearInPicker); openModal(datePickerModal); });
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
-        if (overlay.id !== 'analysis-modal-overlay') {
+        if (!overlay.id.includes('analysis')) {
              overlay.addEventListener('click', (e) => closeModal(e.target.closest('.modal-container')));
         }
     });
@@ -566,12 +625,11 @@ document.addEventListener('DOMContentLoaded', () => {
     confirmCancelBtn.addEventListener('click', () => closeModal(confirmationModal));
     currencySelector.addEventListener('change', (e) => { currentCurrency = e.target.value; renderCosts(); });
     
-    // MODIFIED: Updated theme toggle to redraw chart if it's open
     themeToggleBtn.addEventListener('click', () => {
         const newTheme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         applyTheme(newTheme);
-        if (!analysisModal.classList.contains('hidden') && lastIncomeHistory) {
-            renderIncomeChart(lastIncomeHistory);
+        if (!analysisModal.classList.contains('hidden') && lastChartData) {
+            renderChart(lastChartData, lastChartTitle);
         }
     });
     
@@ -583,12 +641,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     saveBudgetBtn.addEventListener('click', saveBudget);
 
-    analyzeIncomeBtn.addEventListener('click', async () => {
-        const history = await fetchIncomeHistory();
-        const processedData = processIncomeData(history);
-        renderIncomeChart(processedData);
-        openModal(analysisModal);
+    analyzeDataBtn.addEventListener('click', () => openModal(analysisChooserModal));
+    analysisChooserCloseBtn.addEventListener('click', () => closeModal(analysisChooserModal));
+    document.getElementById('analysis-chooser-overlay').addEventListener('click', () => closeModal(analysisChooserModal));
+    analysisOptionsGrid.addEventListener('click', (e) => {
+        if (e.target.classList.contains('analysis-option-btn')) {
+            const chartType = e.target.dataset.chartType;
+            generateAndShowChart(chartType);
+        }
     });
+
     analysisModalCloseBtn.addEventListener('click', () => closeModal(analysisModal));
     document.getElementById('analysis-modal-overlay').addEventListener('click', () => closeModal(analysisModal));
 

@@ -8,7 +8,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <!-- MODIFIED: Added Chart.js library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js" defer></script>
 </head>
@@ -111,22 +110,20 @@
                         <div class="totals-footer" id="total-variable-footer"></div>
                     </section>
                 </div>
-                 <!-- MODIFIED: Wrapped action buttons in a container for better layout -->
                  <div class="action-bar-container">
                     <button id="open-import-modal-btn" class="action-btn" title="Quickly add recurring expenses from previous months">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                         Import Spending
                     </button>
-                    <button id="analyze-income-btn" class="action-btn" title="Analyze income history">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                        Analyze Income
+                    <button id="analyze-data-btn" class="action-btn" title="Analyze historical data">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18.7 8a.7.7 0 0 0-1 0l-4.3 4.3-3-3a.7.7 0 0 0-1 0l-4.3 4.3a.7.7 0 0 0 1 1L8.3 12l3 3a.7.7 0 0 0 1 0l4.3-4.3a.7.7 0 0 0 0-1Z"/></svg>
+                        Analyze Data
                     </button>
                 </div>
             </div>
         </main>
     </div>
     
-    <!-- Modals -->
     <div id="date-picker-modal" class="modal-container hidden">
         <div id="modal-overlay" class="modal-overlay"></div>
         <div class="modal-content date-picker-content">
@@ -179,16 +176,31 @@
         </div>
     </div>
 
-    <!-- MODIFIED: Added modal for income analysis chart -->
     <div id="analysis-modal" class="modal-container hidden">
         <div id="analysis-modal-overlay" class="modal-overlay"></div>
         <div class="modal-content analysis-modal-content">
             <div class="modal-header">
-                <h3>Income History</h3>
+                <h3 id="analysis-title"></h3>
                 <button id="analysis-modal-close-btn" class="modal-close-btn">×</button>
             </div>
             <div class="chart-container">
-                <canvas id="income-chart"></canvas>
+                <canvas id="analysis-chart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div id="analysis-chooser-modal" class="modal-container hidden">
+        <div id="analysis-chooser-overlay" class="modal-overlay"></div>
+        <div class="modal-content analysis-chooser-content">
+            <div class="modal-header">
+                <h3>Analyze History</h3>
+                <button id="analysis-chooser-close-btn" class="modal-close-btn">×</button>
+            </div>
+            <div class="analysis-options-grid">
+                <button class="analysis-option-btn" data-chart-type="income">Income</button>
+                <button class="analysis-option-btn" data-chart-type="fixed">Fixed Costs</button>
+                <button class="analysis-option-btn" data-chart-type="variable">Variable Costs</button>
+                <button class="analysis-option-btn" data-chart-type="overall">Overall Costs</button>
             </div>
         </div>
     </div>

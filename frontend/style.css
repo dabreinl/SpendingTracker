@@ -155,7 +155,6 @@ input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; background: v
 @keyframes pulse-danger { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.2); } }
 
 /* --- Action Button Bar --- */
-/* MODIFIED: Added styles for the new action button container and buttons */
 .action-bar-container { display: flex; gap: 1rem; animation: fadeInUp 0.6s var(--transition-slow) backwards; animation-delay: 0.4s; }
 .action-btn { flex: 1; background-color: var(--surface); border: 1px dashed var(--border); color: var(--text-secondary); padding: 0.875rem; border-radius: var(--border-radius-md); font-weight: 500; cursor: pointer; transition: all var(--transition-fast); display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
 .action-btn:hover { border-color: var(--accent); border-style: solid; color: var(--accent); background-color: color-mix(in srgb, var(--accent) 8%, transparent); transform: translateY(-2px); box-shadow: 0 4px 10px -2px hsl(var(--shadow-color) / 0.1); }
@@ -233,8 +232,14 @@ li:not(.is-editing) .save-btn, li:not(.is-editing) .cancel-btn { display: none; 
 .confirmation-actions button { flex-grow: 1; font-family: var(--font-sans); font-weight: 600; border: none; padding: 0.6rem 1.25rem; border-radius: var(--border-radius-md); cursor: pointer; transition: all var(--transition-fast); }
 .costs-list.drag-over { border: 2px dashed var(--accent); background-color: color-mix(in srgb, var(--accent) 10%, transparent); }
 .costs-list li.dragging { opacity: 0.5; background-color: var(--bg); box-shadow: none; transform: scale(0.98); }
-/* MODIFIED: Added styles for analysis modal */
+
+/* MODIFIED: Added styles for analysis chooser and chart modals */
 .analysis-modal-content { max-width: 800px; width: 95%; }
-.chart-container { position: relative; width: 100%; height: 400px; }
+.chart-container { position: relative; width: 100%; height: 400px; margin-top: 1rem; }
+.analysis-chooser-content { max-width: 500px; }
+.analysis-options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.analysis-option-btn { font-family: var(--font-sans); font-weight: 600; font-size: 1rem; padding: 1.5rem; border: 1px solid var(--border); background-color: var(--bg); color: var(--text-primary); border-radius: var(--border-radius-md); cursor: pointer; transition: all var(--transition-fast); }
+.analysis-option-btn:hover { border-color: var(--accent); background-color: color-mix(in srgb, var(--accent) 10%, transparent); color: var(--accent); transform: translateY(-2px); }
+
 @media (max-width: 1023px) { .app-container { padding: 1rem; } .layout-column-left { order: 2; } .layout-column-right { order: 1; } }
-@media (max-width: 600px) { .app-header { flex-direction: column; align-items: flex-start; gap: 1.5rem; } .form-actions { flex-direction: column; align-items: stretch; gap: 1rem; } .import-modal-body { grid-template-columns: 1fr; } .action-bar-container { flex-direction: column; } }
+@media (max-width: 600px) { .app-header { flex-direction: column; align-items: flex-start; gap: 1.5rem; } .form-actions { flex-direction: column; align-items: stretch; gap: 1rem; } .import-modal-body { grid-template-columns: 1fr; } .action-bar-container { flex-direction: column; } .analysis-options-grid { grid-template-columns: 1fr; } }
