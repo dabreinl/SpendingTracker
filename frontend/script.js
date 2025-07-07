@@ -47,6 +47,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const analysisChooserModal = document.getElementById('analysis-chooser-modal');
     const analysisChooserCloseBtn = document.getElementById('analysis-chooser-close-btn');
     const analysisOptionsGrid = document.querySelector('.analysis-options-grid');
+    // MODIFIED: Added selectors for permanent chart elements
+    const analysisChartElement = document.getElementById('analysis-chart');
+    const chartNoDataMessage = document.getElementById('chart-no-data-message');
+
 
     // --- Icons ---
     const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
@@ -481,8 +485,8 @@ document.addEventListener('DOMContentLoaded', () => {
         lastChartData = processedData;
         return processedData;
     };
-    
-    // MODIFIED: Corrected the chart rendering logic to prevent canvas destruction
+
+    // MODIFIED: Rewrote function to prevent canvas destruction
     const renderChart = (processedData, chartTitle) => {
         if (analysisChartInstance) {
             analysisChartInstance.destroy();
@@ -491,26 +495,23 @@ document.addEventListener('DOMContentLoaded', () => {
         analysisTitle.textContent = chartTitle;
         lastChartTitle = chartTitle;
 
-        const chartContainer = document.querySelector('.chart-container');
-        
-        // If there's no data, display a message and exit.
         if (!processedData || processedData.data.every(d => d === 0)) {
-            chartContainer.innerHTML = `<p class="empty-list-message" style="padding: 2rem 1rem;">No data available for "${chartTitle}".</p>`;
+            chartNoDataMessage.textContent = `No data available for "${chartTitle}".`;
+            chartNoDataMessage.style.display = 'block';
+            analysisChartElement.style.display = 'none';
             return;
         }
         
-        // If we have data, ensure the canvas exists before drawing.
-        chartContainer.innerHTML = '<canvas id="analysis-chart"></canvas>';
-        const currentCanvas = document.getElementById('analysis-chart');
-        const currentCtx = currentCanvas.getContext('2d');
-        
+        chartNoDataMessage.style.display = 'none';
+        analysisChartElement.style.display = 'block';
+
+        const currentCtx = analysisChartElement.getContext('2d');
         const bodyStyles = getComputedStyle(document.body);
         const gridColor = bodyStyles.getPropertyValue('--border').trim();
         const labelColor = bodyStyles.getPropertyValue('--text-secondary').trim();
         const textColor = bodyStyles.getPropertyValue('--text-primary').trim();
-        const accentColor = bodyStyles.getPropertyValue('--accent').trim();
         const surfaceColor = bodyStyles.getPropertyValue('--surface').trim();
-
+        
         analysisChartInstance = new Chart(currentCtx, {
             type: 'line',
             data: {
@@ -518,11 +519,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 datasets: [{
                     label: chartTitle,
                     data: processedData.data,
-                    borderColor: accentColor,
-                    backgroundColor: `${accentColor}33`,
+                    borderColor: '#2A65F7',
+                    backgroundColor: function(context) {
+                        const chart = context.chart;
+                        const {ctx, chartArea} = chart;
+                        if (!chartArea) {
+                            return null;
+                        }
+                        const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                        gradient.addColorStop(0, 'rgba(42, 101, 247, 0.6)');
+                        gradient.addColorStop(1, 'rgba(0, 255, 135, 0.12)');
+                        return gradient;
+                    },
                     fill: true,
-                    tension: 0.3,
-                    pointBackgroundColor: accentColor,
+                    tension: 0.4,
+                    pointBackgroundColor: '#2A65F7',
                     pointRadius: 4,
                     pointHoverRadius: 6,
                     pointBorderColor: surfaceColor,
@@ -568,8 +579,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const generateAndShowChart = async (chartType) => {
         closeModal(analysisChooserModal);
         analysisTitle.textContent = 'Loading Chart Data...';
-        // Clear previous chart/message before showing modal
-        document.querySelector('.chart-container').innerHTML = '<canvas id="analysis-chart"></canvas>';
         openModal(analysisModal);
 
         const [incomeHistory, costsHistory] = await Promise.all([

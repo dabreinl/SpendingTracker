@@ -2,33 +2,34 @@
 :root {
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     
+    /* MODIFIED: New color palette based on your blue/green logo */
     /* Light Theme */
     --bg-light: #f6f8fa;
     --surface-light: #ffffff;
     --text-primary-light: #1a1d21;
     --text-secondary-light: #57606a;
     --border-light: #dce1e6;
-    --accent-light: #5856d6;
+    --accent-light: #2A65F7;      /* Royal Blue from logo */
     --danger-light: #ff3b30;
-    --warning-light: #ff9500;
+    --warning-light: #ffb800;     /* New Amber Color */
     --success-light: #34c759;
     --fixed-color-light: var(--danger-light);
-    --variable-color-light: var(--warning-light);
+    --variable-color-light: #b8860b; /* Darker Amber for text on light backgrounds */
     --shadow-color-light: 220 25% 90%;
 
     /* Dark Theme */
-    --bg-dark: #16161a;
-    --surface-dark: #24242c;
+    --bg-dark: #0e1629;           /* Dark Navy Blue background */
+    --surface-dark: #1d293d;      /* Lighter Navy Blue for surfaces */
     --text-primary-dark: #f0f2f5;
-    --text-secondary-dark: #9494a0;
-    --border-dark: #3a3b43;
-    --accent-dark: #7d7aff;
+    --text-secondary-dark: #8a9cb2; /* Light gray-blue for secondary text */
+    --border-dark: #2c3a51;       /* Navy-based border */
+    --accent-dark: #2A65F7;       /* Royal Blue from logo */
     --danger-dark: #ff453a;
-    --warning-dark: #ff9f0a;
+    --warning-dark: #ffb800;      /* New Amber Color */
     --success-dark: #32d74b;
     --fixed-color-dark: var(--danger-dark);
     --variable-color-dark: var(--warning-dark);
-    --shadow-color-dark: 240 10% 4%;
+    --shadow-color-dark: 220 30% 5%;
 
     --border-radius-sm: 0.5rem;
     --border-radius-md: 0.75rem;
@@ -62,8 +63,20 @@ body { font-family: var(--font-sans); background-color: var(--bg); color: var(--
 
 /* --- Main Layout & Structure --- */
 .app-container { max-width: 1280px; margin: 0 auto; padding: 1.5rem 2rem; }
-.app-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem; animation: fadeInUp 0.5s var(--transition-slow) backwards; }
-.app-title { font-size: 2rem; font-weight: 700; }
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 0;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+    animation: fadeInUp 0.5s var(--transition-slow) backwards;
+}
+.app-logo {
+    height: auto;
+    width: 180px;
+}
 .main-layout { display: grid; grid-template-columns: 1fr; gap: 2rem; }
 @media (min-width: 1024px) { .main-layout { grid-template-columns: 420px 1fr; } }
 .layout-column-left, .layout-column-right { display: flex; flex-direction: column; gap: 2rem; }
@@ -102,9 +115,9 @@ body { font-family: var(--font-sans); background-color: var(--bg); color: var(--
 .btn-primary { background-color: var(--accent); color: white; }
 .btn-primary:hover:not(:disabled) { background-color: color-mix(in srgb, var(--accent) 85%, black); transform: translateY(-2px); box-shadow: 0 4px 10px -2px color-mix(in srgb, var(--accent) 40%, transparent); }
 .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-.btn-primary.is-success { background-color: var(--success); }
+.btn-primary.is-success { background-color: var(--success); color: white; }
 .btn-primary.is-success:hover { background-color: color-mix(in srgb, var(--success) 85%, black); }
-.btn-primary.is-error { background-color: var(--danger); }
+.btn-primary.is-error { background-color: var(--danger); color: white; }
 .btn-primary.is-error:hover { background-color: color-mix(in srgb, var(--danger) 85%, black); }
 .btn span { line-height: 1; }
 .budget-save-action { margin-top: 2.5rem; }
@@ -115,7 +128,7 @@ body { font-family: var(--font-sans); background-color: var(--bg); color: var(--
 .budget-slider-group label span { font-weight: 600; color: var(--text-primary); }
 input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 8px; background: color-mix(in srgb, var(--border) 50%, transparent); border-radius: 8px; outline: none; }
 input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; background: var(--surface); cursor: pointer; border-radius: 50%; transition: transform var(--transition-fast); border: 4px solid var(--accent); box-shadow: 0 2px 4px hsl(var(--shadow-color) / 0.2); }
-input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; background: var(--surface); cursor: pointer; border-radius: 50%; border: 4px solid var(--accent); box-shadow: 0 2px 4px hsl(var(--shadow-color) / 0.2); }
+.input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; background: var(--surface); cursor: pointer; border-radius: 50%; border: 4px solid var(--accent); box-shadow: 0 2px 4px hsl(var(--shadow-color) / 0.2); }
 
 /* --- Expense Lists & Items --- */
 .costs-display-area { display: flex; flex-direction: column; gap: 2rem; }
@@ -157,7 +170,7 @@ input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; background: v
 /* --- Action Button Bar --- */
 .action-bar-container { display: flex; gap: 1rem; animation: fadeInUp 0.6s var(--transition-slow) backwards; animation-delay: 0.4s; }
 .action-btn { flex: 1; background-color: var(--surface); border: 1px dashed var(--border); color: var(--text-secondary); padding: 0.875rem; border-radius: var(--border-radius-md); font-weight: 500; cursor: pointer; transition: all var(--transition-fast); display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
-.action-btn:hover { border-color: var(--accent); border-style: solid; color: var(--accent); background-color: color-mix(in srgb, var(--accent) 8%, transparent); transform: translateY(-2px); box-shadow: 0 4px 10px -2px hsl(var(--shadow-color) / 0.1); }
+.action-btn:hover { border-color: var(--accent); border-style: solid; color: var(--accent); background-color: color-mix(in srgb, var(--accent) 10%, transparent); transform: translateY(-2px); box-shadow: 0 4px 10px -2px hsl(var(--shadow-color) / 0.1); }
 
 /* --- Modals & Overlays --- */
 .modal-overlay { background-color: hsl(var(--shadow-color-dark) / 0.5); backdrop-filter: blur(8px); }
@@ -232,8 +245,6 @@ li:not(.is-editing) .save-btn, li:not(.is-editing) .cancel-btn { display: none; 
 .confirmation-actions button { flex-grow: 1; font-family: var(--font-sans); font-weight: 600; border: none; padding: 0.6rem 1.25rem; border-radius: var(--border-radius-md); cursor: pointer; transition: all var(--transition-fast); }
 .costs-list.drag-over { border: 2px dashed var(--accent); background-color: color-mix(in srgb, var(--accent) 10%, transparent); }
 .costs-list li.dragging { opacity: 0.5; background-color: var(--bg); box-shadow: none; transform: scale(0.98); }
-
-/* MODIFIED: Added styles for analysis chooser and chart modals */
 .analysis-modal-content { max-width: 800px; width: 95%; }
 .chart-container { position: relative; width: 100%; height: 400px; margin-top: 1rem; }
 .analysis-chooser-content { max-width: 500px; }
