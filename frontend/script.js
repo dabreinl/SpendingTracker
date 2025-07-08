@@ -47,7 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const analysisChooserModal = document.getElementById('analysis-chooser-modal');
     const analysisChooserCloseBtn = document.getElementById('analysis-chooser-close-btn');
     const analysisOptionsGrid = document.querySelector('.analysis-options-grid');
-    // MODIFIED: Added selectors for permanent chart elements
     const analysisChartElement = document.getElementById('analysis-chart');
     const chartNoDataMessage = document.getElementById('chart-no-data-message');
 
@@ -486,7 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return processedData;
     };
 
-    // MODIFIED: Rewrote function to prevent canvas destruction
+    // MODIFIED: Rewrote function to be more robust against rendering artifacts.
     const renderChart = (processedData, chartTitle) => {
         if (analysisChartInstance) {
             analysisChartInstance.destroy();
@@ -522,14 +521,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     borderColor: '#2A65F7',
                     backgroundColor: function(context) {
                         const chart = context.chart;
-                        const {ctx, chartArea} = chart;
-                        if (!chartArea) {
-                            return null;
+                        const { ctx, chartArea } = chart;
+
+                        // This check is crucial. If chartArea is not fully available,
+                        // or has no height, we can't create a valid gradient.
+                        if (!chartArea || chartArea.bottom <= chartArea.top) {
+                            return null; // Let Chart.js fall back to default.
                         }
-                        const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-                        gradient.addColorStop(0, 'rgba(42, 101, 247, 0.6)');
-                        gradient.addColorStop(1, 'rgba(0, 255, 135, 0.12)');
-                        return gradient;
+                        
+                        // Using a try-catch block as an extra safeguard against rendering errors.
+                        try {
+                            const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                            // A smooth fade from semi-transparent to fully transparent is most reliable.
+                            gradient.addColorStop(0, 'rgba(42, 101, 247, 0.4)');
+                            gradient.addColorStop(1, 'rgba(42, 101, 247, 0)');
+                            return gradient;
+                        } catch (error) {
+                            console.error("Failed to create chart gradient:", error);
+                            return 'rgba(42, 101, 247, 0.2)'; // Fallback to a solid transparent color on error.
+                        }
                     },
                     fill: true,
                     tension: 0.4,

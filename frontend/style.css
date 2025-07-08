@@ -2,7 +2,6 @@
 :root {
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     
-    /* MODIFIED: New color palette based on your blue/green logo */
     /* Light Theme */
     --bg-light: #f6f8fa;
     --surface-light: #ffffff;
@@ -11,24 +10,24 @@
     --border-light: #dce1e6;
     --accent-light: #2A65F7;      /* Royal Blue from logo */
     --danger-light: #ff3b30;
-    --warning-light: #ffb800;     /* New Amber Color */
+    --warning-light: #ffb800;
     --success-light: #34c759;
-    --fixed-color-light: var(--danger-light);
-    --variable-color-light: #b8860b; /* Darker Amber for text on light backgrounds */
+    --fixed-color-light: var(--accent-light); /* MODIFIED: Match button blue */
+    --variable-color-light: #DB2777; /* Rose */
     --shadow-color-light: 220 25% 90%;
 
     /* Dark Theme */
-    --bg-dark: #0e1629;           /* Dark Navy Blue background */
+    --bg-dark: #0e1629;            /* Dark Navy Blue background */
     --surface-dark: #1d293d;      /* Lighter Navy Blue for surfaces */
     --text-primary-dark: #f0f2f5;
     --text-secondary-dark: #8a9cb2; /* Light gray-blue for secondary text */
-    --border-dark: #2c3a51;       /* Navy-based border */
-    --accent-dark: #2A65F7;       /* Royal Blue from logo */
+    --border-dark: #2c3a51;        /* Navy-based border */
+    --accent-dark: #2A65F7;        /* Royal Blue from logo */
     --danger-dark: #ff453a;
-    --warning-dark: #ffb800;      /* New Amber Color */
+    --warning-dark: #ffb800;
     --success-dark: #32d74b;
-    --fixed-color-dark: var(--danger-dark);
-    --variable-color-dark: var(--warning-dark);
+    --fixed-color-dark: var(--accent-dark); /* MODIFIED: Match button blue */
+    --variable-color-dark: #F472B6; /* Lighter Rose */
     --shadow-color-dark: 220 30% 5%;
 
     --border-radius-sm: 0.5rem;
@@ -48,7 +47,7 @@
 [data-theme="dark"] {
     --bg: var(--bg-dark); --surface: var(--surface-dark); --text-primary: var(--text-primary-dark);
     --text-secondary: var(--text-secondary-dark); --border: var(--border-dark); --accent: var(--accent-dark);
-    --danger: var(--danger-dark); --warning: var(--warning-dark); --success: var(--success-dark);
+    --danger: var(--danger-dark); --warning: var(--warning-light); --success: var(--success-dark);
     --fixed-color: var(--fixed-color-dark); --variable-color: var(--variable-color-dark);
     --shadow-color: var(--shadow-color-dark);
 }
@@ -73,10 +72,27 @@ body { font-family: var(--font-sans); background-color: var(--bg); color: var(--
     gap: 1rem;
     animation: fadeInUp 0.5s var(--transition-slow) backwards;
 }
+
+.logo-container {
+    display: flex;
+    align-items: flex-end; /* MODIFIED: Aligns items to the bottom for a grounded look */
+    gap: 0.75rem;
+}
+
 .app-logo {
     height: auto;
-    width: 180px;
+    width: 150px;
 }
+
+.logo-text {
+    font-size: 3.25rem;
+    font-weight: 300; 
+    color: var(--accent);
+    letter-spacing: -0.025em;
+    line-height: 0.9; /* MODIFIED: Adjust line-height for better vertical alignment */
+    padding-bottom: 0.125rem; /* MODIFIED: Nudge text for fine-tuning */
+}
+
 .main-layout { display: grid; grid-template-columns: 1fr; gap: 2rem; }
 @media (min-width: 1024px) { .main-layout { grid-template-columns: 420px 1fr; } }
 .layout-column-left, .layout-column-right { display: flex; flex-direction: column; gap: 2rem; }

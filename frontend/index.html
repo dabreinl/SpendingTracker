@@ -7,7 +7,7 @@
     <link rel="icon" type="image/png" href="/assets/logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js" defer></script>
@@ -15,7 +15,10 @@
 <body class="loading">
     <div class="app-container">
         <header class="app-header">
-            <img src="/assets/logo.png" alt="Momentum Logo" class="app-logo">
+            <div class="logo-container">
+                <span class="logo-text">momentum</span>
+                <img src="/assets/logo.png" alt="Momentum Logo" class="app-logo">
+            </div>
             <div class="controls-wrapper">
                 <button id="date-picker-toggle-btn" class="date-picker-toggle"></button>
                 <div class="currency-selector-wrapper">
@@ -37,7 +40,7 @@
                     <div class="salary-input-group">
                         <label for="salary-input">Monthly Income</label>
                         <div class="input-with-icon">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                             <input type="number" id="salary-input" placeholder="e.g., 3000" min="0">
                         </div>
                     </div>
@@ -81,7 +84,7 @@
                             <input type="radio" id="type-variable" name="expense-type" value="variable"><label for="type-variable">Variable</label>
                         </div>
                         <button id="add-expense-btn" class="btn btn-primary">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                             <span>Add Expense</span>
                         </button>
                     </div>
