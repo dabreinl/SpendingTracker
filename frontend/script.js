@@ -766,10 +766,15 @@ document.addEventListener('DOMContentLoaded', () => {
         chatInput.disabled = true;
 
         try {
+            // MODIFIED: Send the current year and month for context
             const response = await fetchAPI('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: message })
+                body: JSON.stringify({ 
+                    message: message,
+                    year: selectedYear,
+                    month: selectedMonth
+                })
             });
             addChatMessage(response.reply, 'bot');
         } catch (error) {

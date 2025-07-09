@@ -3,6 +3,7 @@ import os
 from flask import Flask, jsonify, request
 # MODIFIED: Import the chat function from the new llm module
 from . import llm
+from . import database
 
 
 def create_app():
@@ -14,23 +15,41 @@ def create_app():
         os.makedirs(app.instance_path)
     except OSError:
         pass
-    from . import database
-
+    
     database.init_app(app)
 
-    # --- NEW CHAT ROUTE ---
+    # --- MODIFIED CHAT ROUTE ---
     @app.route("/api/chat", methods=["POST"])
     def chat_with_llm():
         data = request.get_json()
         user_message = data.get("message")
+        year = data.get("year")
+        month = data.get("month")
 
         if not user_message:
             return jsonify({"error": "No message provided"}), 400
+        
+        if not year or not month:
+            return jsonify({"error": "Missing year/month context"}), 400
 
         try:
-            # Get the response from the LLM via the new llm module
-            llm_response = llm.get_chat_response(user_message)
+            # 1. Fetch the financial data for the given context
+            month_str = str(month).rjust(2, '0')
+            budget_context = database.get_budget(year, month)
+            costs_context = database.get_all_costs(str(year), month_str)
+            
+            # 2. Combine into a single context dictionary
+            financial_context = {
+                "year": year,
+                "month": month,
+                "budget": budget_context,
+                "costs": costs_context
+            }
+
+            # 3. Get the response from the LLM, now with financial context
+            llm_response = llm.get_chat_response(user_message, financial_context)
             return jsonify({"reply": llm_response})
+            
         except Exception as e:
             print(f"LLM Error: {e}")
             return jsonify({"error": "Failed to get a response from the AI model."}), 500
