@@ -7,6 +7,7 @@ __pycache__/
 *.pyd
 venv/
 instance/
+.env
 
 # IDE / Editor specific
 .vscode/

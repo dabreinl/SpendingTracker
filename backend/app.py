@@ -1,6 +1,8 @@
 # backend/app.py
 import os
 from flask import Flask, jsonify, request
+# MODIFIED: Import the chat function from the new llm module
+from . import llm
 
 
 def create_app():
@@ -15,6 +17,24 @@ def create_app():
     from . import database
 
     database.init_app(app)
+
+    # --- NEW CHAT ROUTE ---
+    @app.route("/api/chat", methods=["POST"])
+    def chat_with_llm():
+        data = request.get_json()
+        user_message = data.get("message")
+
+        if not user_message:
+            return jsonify({"error": "No message provided"}), 400
+
+        try:
+            # Get the response from the LLM via the new llm module
+            llm_response = llm.get_chat_response(user_message)
+            return jsonify({"reply": llm_response})
+        except Exception as e:
+            print(f"LLM Error: {e}")
+            return jsonify({"error": "Failed to get a response from the AI model."}), 500
+
 
     @app.route("/api/costs/budget/<int:year>/<int:month>", methods=["GET"])
     def get_budget(year, month):
@@ -39,7 +59,6 @@ def create_app():
         history = database.get_all_budgets_history()
         return jsonify(history)
 
-    # MODIFIED: Added new route for costs history
     @app.route("/api/costs/history", methods=["GET"])
     def get_costs_history():
         history = database.get_costs_history()

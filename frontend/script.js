@@ -1,4 +1,4 @@
-// frontend/script.js - Updated for new UI elements and confirmation modal
+// frontend/script.js
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- Element Selectors ---
@@ -49,6 +49,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const analysisOptionsGrid = document.querySelector('.analysis-options-grid');
     const analysisChartElement = document.getElementById('analysis-chart');
     const chartNoDataMessage = document.getElementById('chart-no-data-message');
+    const chatToggleBtn = document.getElementById('chat-toggle-btn');
+    const chatWindow = document.getElementById('chat-window');
+    const chatMessages = document.getElementById('chat-messages');
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    const chatLoader = document.getElementById('chat-loader');
 
 
     // --- Icons ---
@@ -485,7 +491,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return processedData;
     };
 
-    // MODIFIED: Rewrote function to be more robust against rendering artifacts.
     const renderChart = (processedData, chartTitle) => {
         if (analysisChartInstance) {
             analysisChartInstance.destroy();
@@ -522,23 +527,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     backgroundColor: function(context) {
                         const chart = context.chart;
                         const { ctx, chartArea } = chart;
-
-                        // This check is crucial. If chartArea is not fully available,
-                        // or has no height, we can't create a valid gradient.
                         if (!chartArea || chartArea.bottom <= chartArea.top) {
-                            return null; // Let Chart.js fall back to default.
+                            return null;
                         }
-                        
-                        // Using a try-catch block as an extra safeguard against rendering errors.
                         try {
                             const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-                            // A smooth fade from semi-transparent to fully transparent is most reliable.
                             gradient.addColorStop(0, 'rgba(42, 101, 247, 0.4)');
                             gradient.addColorStop(1, 'rgba(42, 101, 247, 0)');
                             return gradient;
                         } catch (error) {
                             console.error("Failed to create chart gradient:", error);
-                            return 'rgba(42, 101, 247, 0.2)'; // Fallback to a solid transparent color on error.
+                            return 'rgba(42, 101, 247, 0.2)';
                         }
                     },
                     fill: true,
@@ -722,6 +721,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const item = document.querySelector(`.costs-list li[data-id='${currentlyEditingId}']`);
                 if (item) { exitEditMode(item); renderCosts(); }
             }
+            if (!chatWindow.classList.contains('hidden')) {
+                chatWindow.classList.add('hidden');
+                chatToggleBtn.classList.remove('is-active');
+            }
         }
         if (e.key === 'Enter' && currentlyEditingId) {
             const listItem = document.querySelector(`.costs-list li[data-id='${currentlyEditingId}']`);
@@ -729,6 +732,52 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 listItem.querySelector('.save-btn').click();
             }
+        }
+    });
+
+    // --- Chat Logic ---
+    const addChatMessage = (message, sender) => {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('chat-message', `${sender}-message`);
+        if (sender === 'bot') {
+            let html = message.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Bold
+            html = html.replace(/\*(.*?)\*/g, '<em>$1</em>'); // Italic
+            messageElement.innerHTML = html;
+        } else {
+            messageElement.textContent = message;
+        }
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
+    };
+
+    chatToggleBtn.addEventListener('click', () => {
+        chatWindow.classList.toggle('hidden');
+        chatToggleBtn.classList.toggle('is-active');
+    });
+
+    chatForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        addChatMessage(message, 'user');
+        chatInput.value = '';
+        chatLoader.classList.remove('hidden');
+        chatInput.disabled = true;
+
+        try {
+            const response = await fetchAPI('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: message })
+            });
+            addChatMessage(response.reply, 'bot');
+        } catch (error) {
+            addChatMessage("Sorry, I'm having trouble connecting to my brain right now. Please try again later.", 'bot');
+        } finally {
+            chatLoader.classList.add('hidden');
+            chatInput.disabled = false;
+            chatInput.focus();
         }
     });
 
@@ -741,6 +790,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const budgetData = await fetchBudget(selectedYear, selectedMonth);
             await fetchAndRenderCosts();
             updateBudgetUI(budgetData);
+            addChatMessage('Welcome to your AI assistant! How can I help you with your finances today?', 'bot');
             setTimeout(() => body.classList.remove('loading'), 500);
         } catch (error) {
             console.error("Failed to initialize app:", error);
