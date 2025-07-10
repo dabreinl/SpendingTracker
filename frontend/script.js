@@ -735,20 +735,43 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Chat Logic ---
-    const addChatMessage = (message, sender) => {
+    // --- MODIFIED: Chat Logic ---
+    const addChatMessage = (htmlContent, sender) => {
         const messageElement = document.createElement('div');
         messageElement.classList.add('chat-message', `${sender}-message`);
-        if (sender === 'bot') {
-            let html = message.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Bold
-            html = html.replace(/\*(.*?)\*/g, '<em>$1</em>'); // Italic
-            messageElement.innerHTML = html;
-        } else {
-            messageElement.textContent = message;
-        }
+        
+        // Sanitize and format the message
+        let formattedHtml = htmlContent.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Bold
+        formattedHtml = formattedHtml.replace(/\*(.*?)\*/g, '<em>$1</em>');     // Italic
+        formattedHtml = formattedHtml.replace(/\n/g, '<br>');                   // New lines
+        
+        messageElement.innerHTML = formattedHtml;
         chatMessages.appendChild(messageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
     };
+
+    const addConfirmationMessage = (message, expenses) => {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('chat-message', 'bot-message');
+
+        // Prepare the text part
+        let formattedHtml = message.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        formattedHtml = formattedHtml.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        formattedHtml = formattedHtml.replace(/\n/g, '<br>');
+
+        // Prepare the action buttons part
+        const actionsHtml = `
+            <div class="chat-actions" data-expenses='${JSON.stringify(expenses)}'>
+                <button class="chat-action-btn chat-confirm-btn">Confirm</button>
+                <button class="chat-action-btn chat-cancel-btn">Cancel</button>
+            </div>
+        `;
+
+        messageElement.innerHTML = formattedHtml + actionsHtml;
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    };
+
 
     chatToggleBtn.addEventListener('click', () => {
         chatWindow.classList.toggle('hidden');
@@ -766,7 +789,6 @@ document.addEventListener('DOMContentLoaded', () => {
         chatInput.disabled = true;
 
         try {
-            // MODIFIED: Send the current year and month for context
             const response = await fetchAPI('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -776,7 +798,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     month: selectedMonth
                 })
             });
-            addChatMessage(response.reply, 'bot');
+
+            // MODIFIED: Handle complex response for tool use
+            if (response.pending_actions && response.pending_actions.tool_name === 'create_expenses') {
+                addConfirmationMessage(response.reply, response.pending_actions.tool_args);
+            } else {
+                addChatMessage(response.reply, 'bot');
+            }
+
         } catch (error) {
             addChatMessage("Sorry, I'm having trouble connecting to my brain right now. Please try again later.", 'bot');
         } finally {
@@ -784,6 +813,37 @@ document.addEventListener('DOMContentLoaded', () => {
             chatInput.disabled = false;
             chatInput.focus();
         }
+    });
+
+    // MODIFIED: Add event delegation for chat action buttons
+    chatMessages.addEventListener('click', async (e) => {
+        const confirmBtn = e.target.closest('.chat-confirm-btn');
+        const cancelBtn = e.target.closest('.chat-cancel-btn');
+        const actionsContainer = e.target.closest('.chat-actions');
+
+        if (!actionsContainer) return;
+
+        if (confirmBtn) {
+            const expensesData = JSON.parse(actionsContainer.dataset.expenses);
+            const dateForNewExpenses = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01T12:00:00`;
+            
+            // The tool gives {name, amount, type}. We need to add the date.
+            const costsToImport = expensesData.map(cost => ({
+                ...cost,
+                description: cost.description || null,
+                date: dateForNewExpenses
+            }));
+
+            await batchAddCosts(costsToImport);
+            addChatMessage("Done! I've added those expenses for you.", 'bot');
+        }
+
+        if (cancelBtn) {
+            addChatMessage("Okay, I've cancelled the request.", 'bot');
+        }
+
+        // Remove the buttons after an action is taken
+        actionsContainer.remove();
     });
 
     // --- Initial Load ---
@@ -795,7 +855,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const budgetData = await fetchBudget(selectedYear, selectedMonth);
             await fetchAndRenderCosts();
             updateBudgetUI(budgetData);
-            addChatMessage('Welcome to your AI assistant! How can I help you with your finances today?', 'bot');
+            addChatMessage('Welcome to your AI assistant! How can I help you with your finances today? You can ask me to log expenses like "add $15 for lunch and $50 for gas".', 'bot');
             setTimeout(() => body.classList.remove('loading'), 500);
         } catch (error) {
             console.error("Failed to initialize app:", error);

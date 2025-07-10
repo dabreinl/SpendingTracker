@@ -46,9 +46,12 @@ def create_app():
                 "costs": costs_context
             }
 
-            # 3. Get the response from the LLM, now with financial context
+            # 3. Get the response from the LLM, which might include tool calls
             llm_response = llm.get_chat_response(user_message, financial_context)
-            return jsonify({"reply": llm_response})
+            
+            # MODIFIED: The response can now be a complex object, not just a string.
+            # We return the whole object to the frontend.
+            return jsonify(llm_response)
             
         except Exception as e:
             print(f"LLM Error: {e}")
