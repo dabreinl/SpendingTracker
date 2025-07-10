@@ -43,7 +43,7 @@ def create_expenses(expenses: List[Expense]):
 
 # --- LLM and Conversation Chain Setup ---
 
-llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.5, convert_system_message_to_human=True)
+llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite-preview-06-17", temperature=0.5, convert_system_message_to_human=True)
 llm_with_tools = llm.bind_tools([create_expenses], tool_choice="auto")
 memory = ConversationBufferWindowMemory(k=4, return_messages=True)
 
