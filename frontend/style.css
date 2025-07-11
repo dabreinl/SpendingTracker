@@ -56,6 +56,11 @@
 html { scroll-behavior: smooth; }
 body { font-family: var(--font-sans); background-color: var(--bg); color: var(--text-primary); transition: background-color var(--transition-slow), color var(--transition-slow); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
+/* --- NEW: Utility Class to handle visibility --- */
+.hidden {
+    display: none !important;
+}
+
 /* --- Keyframe Animations --- */
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-4px); } 40%, 80% { transform: translateX(4px); } }
@@ -385,10 +390,30 @@ li:not(.is-editing) .save-btn, li:not(.is-editing) .cancel-btn { display: none; 
 
 .chat-form {
     display: flex;
+    flex-direction: column; 
     padding: 1rem;
     border-top: 1px solid var(--border);
+    gap: 0.75rem;
+}
+
+#visualizer {
+    display: none;
+    width: 100%;
+    height: 35px;
+    margin-bottom: 0.25rem;
+    border-radius: var(--border-radius-sm);
+    background-color: color-mix(in srgb, var(--border) 40%, transparent);
+}
+.chat-form.recording #visualizer {
+    display: block;
+}
+
+.chat-input-container {
+    display: flex;
+    width: 100%;
     gap: 0.5rem;
 }
+
 #chat-input {
     flex-grow: 1;
     border: 1px solid var(--border);
@@ -405,7 +430,7 @@ li:not(.is-editing) .save-btn, li:not(.is-editing) .cancel-btn { display: none; 
     border-color: var(--accent);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
 }
-.chat-form button {
+.chat-input-container button {
     flex-shrink: 0;
     width: 44px;
     height: 44px;
@@ -418,11 +443,11 @@ li:not(.is-editing) .save-btn, li:not(.is-editing) .cancel-btn { display: none; 
     transition: all var(--transition-fast);
 }
 
-.chat-form button[type="submit"] {
+.chat-input-container button[type="submit"] {
     background-color: var(--accent);
     color: white;
 }
-.chat-form button[type="submit"]:hover {
+.chat-input-container button[type="submit"]:hover {
     background-color: color-mix(in srgb, var(--accent) 85%, black);
     transform: scale(1.05);
 }
@@ -497,7 +522,6 @@ li:not(.is-editing) .save-btn, li:not(.is-editing) .cancel-btn { display: none; 
   50%, 100% { background-color: color-mix(in srgb, var(--accent) 30%, transparent); }
 }
 
-/* MODIFIED: Chat Action Button Styles */
 .chat-actions {
     display: flex;
     gap: 0.75rem;

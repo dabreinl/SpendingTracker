@@ -56,6 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatInput = document.getElementById('chat-input');
     const chatLoader = document.getElementById('chat-loader');
     const chatRecordBtn = document.getElementById('chat-record-btn');
+    const visualizerCanvas = document.getElementById('visualizer');
+    const visualizerCtx = visualizerCanvas.getContext('2d');
 
 
     // --- Icons ---
@@ -81,6 +83,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let mediaRecorder;
     let isRecording = false;
     let audioChunks = [];
+    let audioContext;
+    let analyser;
+    let visualizerFrameId;
+    let dataArray;
+    let bufferLength;
 
     // --- Utility Functions ---
     const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: currentCurrency, minimumFractionDigits: 2 }).format(amount);
@@ -739,18 +746,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- MODIFIED: Chat Logic ---
+    // --- Chat Logic ---
     const addChatMessage = (htmlContent, sender) => {
         const messageElement = document.createElement('div');
         messageElement.classList.add('chat-message', `${sender}-message`);
         
-        let formattedHtml = htmlContent.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Bold
-        formattedHtml = formattedHtml.replace(/\*(.*?)\*/g, '<em>$1</em>');     // Italic
-        formattedHtml = formattedHtml.replace(/\n/g, '<br>');                  // New lines
+        let formattedHtml = htmlContent.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        formattedHtml = formattedHtml.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        formattedHtml = formattedHtml.replace(/\n/g, '<br>');
         
         messageElement.innerHTML = formattedHtml;
         chatMessages.appendChild(messageElement);
-        chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
+        chatMessages.scrollTop = chatMessages.scrollHeight;
     };
 
     const addConfirmationMessage = (message, expenses) => {
@@ -786,6 +793,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         addChatMessage(message, 'user');
         chatInput.value = '';
+
+        // MODIFIED: Show loader ONLY when submitting a text message
         chatLoader.classList.remove('hidden');
         chatInput.disabled = true;
 
@@ -809,6 +818,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             addChatMessage("Sorry, I'm having trouble connecting to my brain right now. Please try again later.", 'bot');
         } finally {
+            // MODIFIED: Hide loader after response or error
             chatLoader.classList.add('hidden');
             chatInput.disabled = false;
             chatInput.focus();
@@ -843,29 +853,81 @@ document.addEventListener('DOMContentLoaded', () => {
         actionsContainer.remove();
     });
 
-    // --- NEW: Speech-to-Text Recording Logic ---
+    // --- Audio Visualizer and Recording Logic ---
+    const drawVisualizer = () => {
+        if (!isRecording) return; 
+
+        visualizerFrameId = requestAnimationFrame(drawVisualizer);
+        
+        analyser.getByteTimeDomainData(dataArray);
+
+        visualizerCtx.fillStyle = 'rgba(0, 0, 0, 0)'; // Keep background transparent
+        visualizerCtx.clearRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
+        
+        visualizerCtx.lineWidth = 2;
+        visualizerCtx.strokeStyle = getComputedStyle(body).getPropertyValue('--accent').trim();
+        visualizerCtx.beginPath();
+
+        const sliceWidth = visualizerCanvas.width * 1.0 / bufferLength;
+        let x = 0;
+
+        for (let i = 0; i < bufferLength; i++) {
+            const v = dataArray[i] / 128.0;
+            const y = v * visualizerCanvas.height / 2;
+
+            if (i === 0) {
+                visualizerCtx.moveTo(x, y);
+            } else {
+                visualizerCtx.lineTo(x, y);
+            }
+
+            x += sliceWidth;
+        }
+
+        visualizerCtx.lineTo(visualizerCanvas.width, visualizerCanvas.height / 2);
+        visualizerCtx.stroke();
+    };
+    
     const handleRecording = async () => {
         if (isRecording) {
-            // Stop recording
             mediaRecorder.stop();
             isRecording = false;
+            
+            cancelAnimationFrame(visualizerFrameId);
+            chatForm.classList.remove('recording');
             chatRecordBtn.classList.remove('recording');
+            
+            audioContext.close();
             chatInput.placeholder = "Transcribing...";
             chatInput.disabled = true;
+
         } else {
-            // Start recording
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                isRecording = true;
+                
                 mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
-
                 mediaRecorder.addEventListener("dataavailable", event => {
                     audioChunks.push(event.data);
                 });
+                mediaRecorder.start();
+                
+                audioContext = new AudioContext();
+                const source = audioContext.createMediaStreamSource(stream);
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 2048;
+                bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+                source.connect(analyser);
+                
+                chatForm.classList.add('recording');
+                chatRecordBtn.classList.add('recording');
+                chatInput.placeholder = "Recording... Click again to stop.";
+                drawVisualizer();
 
                 mediaRecorder.addEventListener("stop", async () => {
                     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                    
                     const formData = new FormData();
                     formData.append('audio_file', audioBlob, 'recording.webm');
                     
@@ -894,14 +956,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
 
-                mediaRecorder.start();
-                isRecording = true;
-                chatRecordBtn.classList.add('recording');
-                chatInput.placeholder = "Recording... Click again to stop.";
-
             } catch (err) {
                 console.error("Error accessing microphone:", err);
                 addChatMessage("I need microphone access to hear you. Please enable it in your browser settings.", 'bot');
+                isRecording = false;
             }
         }
     };
@@ -912,6 +970,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const initializeApp = async () => {
         applyTheme(localStorage.getItem('theme') || 'light');
         updateDatePickerButtonText();
+        // MODIFIED: Ensure loader is hidden on startup
+        chatLoader.classList.add('hidden');
         try {
             await fetchMonthlySummary();
             const budgetData = await fetchBudget(selectedYear, selectedMonth);

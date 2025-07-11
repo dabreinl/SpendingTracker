@@ -48,7 +48,7 @@ def create_expenses(expenses: List[Expense]):
 
 # --- LLM and Conversation Chain Setup ---
 
-llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash-latest", temperature=0.5, convert_system_message_to_human=True)
+llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.5, convert_system_message_to_human=True)
 llm_with_tools = llm.bind_tools([create_expenses], tool_choice="auto")
 memory = ConversationBufferWindowMemory(k=4, return_messages=True)
 
@@ -69,7 +69,7 @@ def transcribe_audio(audio_file):
     Returns:
         The transcribed text as a string.
     """
-    model = genai.GenerativeModel('models/gemini-1.5-flash-latest')
+    model = genai.GenerativeModel('gemini-2.5-flash')
     prompt = "Provide a transcript for this audio."
     
     # Create the audio part from the FileStorage object in a format the SDK understands.
