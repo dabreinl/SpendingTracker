@@ -33,99 +33,125 @@
             </div>
         </header>
 
-        <main class="main-layout">
-            <div class="layout-column-left">
-                <section class="card budget-container">
-                    <h2 class="card-title">Monthly Budget</h2>
-                    <div class="salary-input-group">
-                        <label for="salary-input">Monthly Income</label>
-                        <div class="input-with-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                            <input type="number" id="salary-input" placeholder="e.g., 3000" min="0">
+        <div class="app-grid-container">
+            <main class="main-content">
+                <div class="layout-column-left">
+                    <section class="card budget-container">
+                        <h2 class="card-title">Monthly Budget</h2>
+                        <div class="salary-input-group">
+                            <label for="salary-input">Monthly Income</label>
+                            <div class="input-with-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                <input type="number" id="salary-input" placeholder="e.g., 3000" min="0">
+                            </div>
                         </div>
-                    </div>
-                    <div class="salary-input-group">
-                        <label for="savings-goal-input">Monthly Savings Goal</label>
-                        <div class="input-with-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
-                            <input type="number" id="savings-goal-input" placeholder="e.g., 500" min="0">
+                        <div class="salary-input-group">
+                            <label for="savings-goal-input">Monthly Savings Goal</label>
+                            <div class="input-with-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                                <input type="number" id="savings-goal-input" placeholder="e.g., 500" min="0">
+                            </div>
                         </div>
-                    </div>
-                    <div class="budget-sliders">
-                        <div class="budget-slider-group">
-                            <label for="fixed-budget-slider">Fixed Costs: <span id="fixed-percent-display">40</span>%</label>
-                            <input type="range" id="fixed-budget-slider" min="0" max="100" value="40">
+                        <div class="budget-sliders">
+                            <div class="budget-slider-group">
+                                <label for="fixed-budget-slider">Fixed Costs: <span id="fixed-percent-display">40</span>%</label>
+                                <input type="range" id="fixed-budget-slider" min="0" max="100" value="40">
+                            </div>
+                            <div class="budget-slider-group">
+                                <label for="variable-budget-slider">Variable Costs: <span id="variable-percent-display">30</span>%</label>
+                                <input type="range" id="variable-budget-slider" min="0" max="100" value="30">
+                            </div>
                         </div>
-                        <div class="budget-slider-group">
-                            <label for="variable-budget-slider">Variable Costs: <span id="variable-percent-display">30</span>%</label>
-                            <input type="range" id="variable-budget-slider" min="0" max="100" value="30">
+                        <div class="budget-save-action">
+                            <button id="save-budget-btn" class="btn btn-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                                <span>Save Budget</span>
+                            </button>
                         </div>
-                    </div>
-                    <div class="budget-save-action">
-                        <button id="save-budget-btn" class="btn btn-primary">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                            <span>Save Budget</span>
-                        </button>
-                    </div>
-                </section>
-                
-                <section class="card expense-form-container">
-                    <h2 class="card-title">Log New Expense</h2>
-                    <div class="form-inputs">
-                        <input type="text" id="expense-name-input" placeholder="Expense Name (e.g., Coffee)" required>
-                        <input type="number" id="expense-amount-input" placeholder="Amount" min="0.01" step="0.01" required>
-                    </div>
-                    <div class="form-description">
-                        <textarea id="expense-description-input" placeholder="Add a description (optional)" rows="2"></textarea>
-                    </div>
-                    <div class="form-actions">
-                        <div class="expense-type-chooser">
-                            <input type="radio" id="type-fixed" name="expense-type" value="fixed" checked><label for="type-fixed">Fixed</label>
-                            <input type="radio" id="type-variable" name="expense-type" value="variable"><label for="type-variable">Variable</label>
-                        </div>
-                        <button id="add-expense-btn" class="btn btn-primary">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                            <span>Add Expense</span>
-                        </button>
-                    </div>
-                </section>
-            </div>
-
-            <div class="layout-column-right">
-                <div class="grand-total-container card">
-                    <span class="grand-total-label">Total Spending</span>
-                    <span id="grand-total" class="grand-total-amount">$0.00</span>
-                </div>
-                <div class="costs-display-area">
-                    <section id="fixed-costs" class="cost-section card">
-                        <div class="section-header">
-                            <h2>Fixed Costs</h2>
-                            <button id="clear-fixed-btn" class="clear-btn">Clear All</button>
-                        </div>
-                        <ul id="fixed-costs-list" class="costs-list"></ul>
-                        <div class="totals-footer" id="total-fixed-footer"></div>
                     </section>
-                    <section id="variable-costs" class="cost-section card">
-                        <div class="section-header">
-                            <h2>Variable Costs</h2>
-                            <button id="clear-variable-btn" class="clear-btn">Clear All</button>
+                    
+                    <section class="card expense-form-container">
+                        <h2 class="card-title">Log New Expense</h2>
+                        <div class="form-inputs">
+                            <input type="text" id="expense-name-input" placeholder="Expense Name (e.g., Coffee)" required>
+                            <input type="number" id="expense-amount-input" placeholder="Amount" min="0.01" step="0.01" required>
                         </div>
-                        <ul id="variable-costs-list" class="costs-list"></ul>
-                        <div class="totals-footer" id="total-variable-footer"></div>
+                        <div class="form-description">
+                            <textarea id="expense-description-input" placeholder="Add a description (optional)" rows="2"></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <div class="expense-type-chooser">
+                                <input type="radio" id="type-fixed" name="expense-type" value="fixed" checked><label for="type-fixed">Fixed</label>
+                                <input type="radio" id="type-variable" name="expense-type" value="variable"><label for="type-variable">Variable</label>
+                            </div>
+                            <button id="add-expense-btn" class="btn btn-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                <span>Add Expense</span>
+                            </button>
+                        </div>
                     </section>
                 </div>
-                 <div class="action-bar-container">
-                    <button id="open-import-modal-btn" class="action-btn" title="Quickly add recurring expenses from previous months">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                        Import Spending
-                    </button>
-                    <button id="analyze-data-btn" class="action-btn" title="Analyze historical data">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18.7 8a.7.7 0 0 0-1 0l-4.3 4.3-3-3a.7.7 0 0 0-1 0l-4.3 4.3a.7.7 0 0 0 1 1L8.3 12l3 3a.7.7 0 0 0 1 0l4.3-4.3a.7.7 0 0 0 0-1Z"/></svg>
-                        Analyze Data
-                    </button>
+    
+                <div class="layout-column-right">
+                    <div class="grand-total-container card">
+                        <span class="grand-total-label">Total Spending</span>
+                        <span id="grand-total" class="grand-total-amount">$0.00</span>
+                    </div>
+                    <div class="costs-display-area">
+                        <section id="fixed-costs" class="cost-section card">
+                            <div class="section-header">
+                                <h2>Fixed Costs</h2>
+                                <button id="clear-fixed-btn" class="clear-btn">Clear All</button>
+                            </div>
+                            <ul id="fixed-costs-list" class="costs-list"></ul>
+                            <div class="totals-footer" id="total-fixed-footer"></div>
+                        </section>
+                        <section id="variable-costs" class="cost-section card">
+                            <div class="section-header">
+                                <h2>Variable Costs</h2>
+                                <button id="clear-variable-btn" class="clear-btn">Clear All</button>
+                            </div>
+                            <ul id="variable-costs-list" class="costs-list"></ul>
+                            <div class="totals-footer" id="total-variable-footer"></div>
+                        </section>
+                    </div>
+                     <div class="action-bar-container">
+                        <button id="open-import-modal-btn" class="action-btn" title="Quickly add recurring expenses from previous months">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            Import Spending
+                        </button>
+                        <button id="analyze-data-btn" class="action-btn" title="Analyze historical data">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18.7 8a.7.7 0 0 0-1 0l-4.3 4.3-3-3a.7.7 0 0 0-1 0l-4.3 4.3a.7.7 0 0 0 1 1L8.3 12l3 3a.7.7 0 0 0 1 0l4.3-4.3a.7.7 0 0 0 0-1Z"/></svg>
+                            Analyze Data
+                        </button>
+                    </div>
                 </div>
-            </div>
-        </main>
+            </main>
+    
+            <aside class="chat-panel">
+                <div class="chat-header">
+                    <h3>Ask Gemini</h3>
+                    <p>Your AI Financial Assistant</p>
+                </div>
+                <div id="chat-messages" class="chat-messages">
+                </div>
+                <div id="chat-loader" class="chat-loader hidden">
+                    <div class="dot-flashing"></div>
+                </div>
+                <form id="chat-form" class="chat-form">
+                    <canvas id="visualizer"></canvas>
+                    <div class="chat-input-container">
+                        <input type="text" id="chat-input" placeholder="Ask or start recording..." autocomplete="off">
+                        <button type="button" id="chat-record-btn" aria-label="Record message">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+                        </button>
+                        <button type="submit" aria-label="Send message">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        </button>
+                    </div>
+                </form>
+            </aside>
+        </div>
     </div>
     
     <div id="date-picker-modal" class="modal-container hidden">
@@ -210,40 +236,5 @@
         </div>
     </div>
 
-    <button id="chat-toggle-btn" class="chat-toggle-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chat-icon-happy">
-            <circle cx="12" cy="12" r="10"></circle>
-            <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
-            <line x1="9" y1="9" x2="9.01" y2="9"></line>
-            <line x1="15" y1="9" x2="15.01" y2="9"></line>
-        </svg>
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="chat-icon-close">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-    </button>
-    <div id="chat-window" class="chat-window hidden">
-        <div class="chat-header">
-            <h3>Ask Gemini</h3>
-            <p>Your AI Financial Assistant</p>
-        </div>
-        <div id="chat-messages" class="chat-messages">
-            </div>
-        <div id="chat-loader" class="chat-loader hidden">
-            <div class="dot-flashing"></div>
-        </div>
-        <form id="chat-form" class="chat-form">
-            <canvas id="visualizer"></canvas>
-            <div class="chat-input-container">
-                <input type="text" id="chat-input" placeholder="Ask or start recording..." autocomplete="off">
-                <button type="button" id="chat-record-btn" aria-label="Record message">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
-                </button>
-                <button type="submit" aria-label="Send message">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                </button>
-            </div>
-        </form>
-    </div>
-</body>
+    </body>
 </html>

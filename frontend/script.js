@@ -49,8 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const analysisOptionsGrid = document.querySelector('.analysis-options-grid');
     const analysisChartElement = document.getElementById('analysis-chart');
     const chartNoDataMessage = document.getElementById('chart-no-data-message');
-    const chatToggleBtn = document.getElementById('chat-toggle-btn');
-    const chatWindow = document.getElementById('chat-window');
+    // REMOVED chatToggleBtn selector
+    // REMOVED chatWindow selector
     const chatMessages = document.getElementById('chat-messages');
     const chatForm = document.getElementById('chat-form');
     const chatInput = document.getElementById('chat-input');
@@ -732,10 +732,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const item = document.querySelector(`.costs-list li[data-id='${currentlyEditingId}']`);
                 if (item) { exitEditMode(item); renderCosts(); }
             }
-            if (!chatWindow.classList.contains('hidden')) {
-                chatWindow.classList.add('hidden');
-                chatToggleBtn.classList.remove('is-active');
-            }
+            // REMOVED logic for hiding old chat window
         }
         if (e.key === 'Enter' && currentlyEditingId) {
             const listItem = document.querySelector(`.costs-list li[data-id='${currentlyEditingId}']`);
@@ -780,11 +777,7 @@ document.addEventListener('DOMContentLoaded', () => {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     };
 
-
-    chatToggleBtn.addEventListener('click', () => {
-        chatWindow.classList.toggle('hidden');
-        chatToggleBtn.classList.toggle('is-active');
-    });
+    // REMOVED chatToggleBtn event listener
 
     chatForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -794,7 +787,6 @@ document.addEventListener('DOMContentLoaded', () => {
         addChatMessage(message, 'user');
         chatInput.value = '';
 
-        // MODIFIED: Show loader ONLY when submitting a text message
         chatLoader.classList.remove('hidden');
         chatInput.disabled = true;
 
@@ -818,7 +810,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             addChatMessage("Sorry, I'm having trouble connecting to my brain right now. Please try again later.", 'bot');
         } finally {
-            // MODIFIED: Hide loader after response or error
             chatLoader.classList.add('hidden');
             chatInput.disabled = false;
             chatInput.focus();
@@ -861,7 +852,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         analyser.getByteTimeDomainData(dataArray);
 
-        visualizerCtx.fillStyle = 'rgba(0, 0, 0, 0)'; // Keep background transparent
+        visualizerCtx.fillStyle = 'rgba(0, 0, 0, 0)';
         visualizerCtx.clearRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
         
         visualizerCtx.lineWidth = 2;
@@ -970,7 +961,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const initializeApp = async () => {
         applyTheme(localStorage.getItem('theme') || 'light');
         updateDatePickerButtonText();
-        // MODIFIED: Ensure loader is hidden on startup
         chatLoader.classList.add('hidden');
         try {
             await fetchMonthlySummary();
