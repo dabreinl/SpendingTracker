@@ -55,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatForm = document.getElementById('chat-form');
     const chatInput = document.getElementById('chat-input');
     const chatLoader = document.getElementById('chat-loader');
+    const chatRecordBtn = document.getElementById('chat-record-btn');
 
 
     // --- Icons ---
@@ -77,6 +78,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let analysisChartInstance = null;
     let lastChartData = null;
     let lastChartTitle = null;
+    let mediaRecorder;
+    let isRecording = false;
+    let audioChunks = [];
 
     // --- Utility Functions ---
     const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: currentCurrency, minimumFractionDigits: 2 }).format(amount);
@@ -740,10 +744,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const messageElement = document.createElement('div');
         messageElement.classList.add('chat-message', `${sender}-message`);
         
-        // Sanitize and format the message
         let formattedHtml = htmlContent.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Bold
         formattedHtml = formattedHtml.replace(/\*(.*?)\*/g, '<em>$1</em>');     // Italic
-        formattedHtml = formattedHtml.replace(/\n/g, '<br>');                   // New lines
+        formattedHtml = formattedHtml.replace(/\n/g, '<br>');                  // New lines
         
         messageElement.innerHTML = formattedHtml;
         chatMessages.appendChild(messageElement);
@@ -754,12 +757,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const messageElement = document.createElement('div');
         messageElement.classList.add('chat-message', 'bot-message');
 
-        // Prepare the text part
         let formattedHtml = message.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         formattedHtml = formattedHtml.replace(/\*(.*?)\*/g, '<em>$1</em>');
         formattedHtml = formattedHtml.replace(/\n/g, '<br>');
 
-        // Prepare the action buttons part
         const actionsHtml = `
             <div class="chat-actions" data-expenses='${JSON.stringify(expenses)}'>
                 <button class="chat-action-btn chat-confirm-btn">Confirm</button>
@@ -799,7 +800,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
             });
 
-            // MODIFIED: Handle complex response for tool use
             if (response.pending_actions && response.pending_actions.tool_name === 'create_expenses') {
                 addConfirmationMessage(response.reply, response.pending_actions.tool_args);
             } else {
@@ -815,7 +815,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // MODIFIED: Add event delegation for chat action buttons
     chatMessages.addEventListener('click', async (e) => {
         const confirmBtn = e.target.closest('.chat-confirm-btn');
         const cancelBtn = e.target.closest('.chat-cancel-btn');
@@ -827,7 +826,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const expensesData = JSON.parse(actionsContainer.dataset.expenses);
             const dateForNewExpenses = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01T12:00:00`;
             
-            // The tool gives {name, amount, type}. We need to add the date.
             const costsToImport = expensesData.map(cost => ({
                 ...cost,
                 description: cost.description || null,
@@ -842,9 +840,73 @@ document.addEventListener('DOMContentLoaded', () => {
             addChatMessage("Okay, I've cancelled the request.", 'bot');
         }
 
-        // Remove the buttons after an action is taken
         actionsContainer.remove();
     });
+
+    // --- NEW: Speech-to-Text Recording Logic ---
+    const handleRecording = async () => {
+        if (isRecording) {
+            // Stop recording
+            mediaRecorder.stop();
+            isRecording = false;
+            chatRecordBtn.classList.remove('recording');
+            chatInput.placeholder = "Transcribing...";
+            chatInput.disabled = true;
+        } else {
+            // Start recording
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.addEventListener("dataavailable", event => {
+                    audioChunks.push(event.data);
+                });
+
+                mediaRecorder.addEventListener("stop", async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    
+                    const formData = new FormData();
+                    formData.append('audio_file', audioBlob, 'recording.webm');
+                    
+                    try {
+                        const response = await fetch('/api/transcribe', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        if (!response.ok) {
+                           const errorData = await response.json();
+                           throw new Error(errorData.error || 'Transcription failed');
+                        }
+                        
+                        const data = await response.json();
+                        chatInput.value = data.transcript;
+
+                    } catch (error) {
+                        console.error("Transcription error:", error);
+                        addChatMessage(`Sorry, I couldn't understand that. Please try again.`, 'bot');
+                    } finally {
+                        chatInput.placeholder = "Ask or start recording...";
+                        chatInput.disabled = false;
+                        chatInput.focus();
+                        stream.getTracks().forEach(track => track.stop());
+                    }
+                });
+
+                mediaRecorder.start();
+                isRecording = true;
+                chatRecordBtn.classList.add('recording');
+                chatInput.placeholder = "Recording... Click again to stop.";
+
+            } catch (err) {
+                console.error("Error accessing microphone:", err);
+                addChatMessage("I need microphone access to hear you. Please enable it in your browser settings.", 'bot');
+            }
+        }
+    };
+
+    chatRecordBtn.addEventListener('click', handleRecording);
 
     // --- Initial Load ---
     const initializeApp = async () => {

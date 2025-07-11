@@ -1,7 +1,6 @@
 # backend/app.py
 import os
 from flask import Flask, jsonify, request
-# MODIFIED: Import the chat function from the new llm module
 from . import llm
 from . import database
 
@@ -18,6 +17,26 @@ def create_app():
     
     database.init_app(app)
 
+    # --- NEW: API Route for Audio Transcription ---
+    @app.route("/api/transcribe", methods=["POST"])
+    def transcribe_audio():
+        if 'audio_file' not in request.files:
+            return jsonify({"error": "No audio file provided"}), 400
+        
+        audio_file = request.files['audio_file']
+        
+        if audio_file.filename == '':
+            return jsonify({"error": "No selected file"}), 400
+
+        try:
+            # Pass the file object directly to the transcription function
+            transcript_text = llm.transcribe_audio(audio_file)
+            return jsonify({"transcript": transcript_text})
+        except Exception as e:
+            print(f"Transcription Error: {e}")
+            return jsonify({"error": "Failed to transcribe audio."}), 500
+
+
     # --- MODIFIED CHAT ROUTE ---
     @app.route("/api/chat", methods=["POST"])
     def chat_with_llm():
@@ -33,12 +52,10 @@ def create_app():
             return jsonify({"error": "Missing year/month context"}), 400
 
         try:
-            # 1. Fetch the financial data for the given context
             month_str = str(month).rjust(2, '0')
             budget_context = database.get_budget(year, month)
             costs_context = database.get_all_costs(str(year), month_str)
             
-            # 2. Combine into a single context dictionary
             financial_context = {
                 "year": year,
                 "month": month,
@@ -46,11 +63,8 @@ def create_app():
                 "costs": costs_context
             }
 
-            # 3. Get the response from the LLM, which might include tool calls
             llm_response = llm.get_chat_response(user_message, financial_context)
             
-            # MODIFIED: The response can now be a complex object, not just a string.
-            # We return the whole object to the frontend.
             return jsonify(llm_response)
             
         except Exception as e:
@@ -86,7 +100,6 @@ def create_app():
         history = database.get_costs_history()
         return jsonify(history)
 
-    # --- Other routes remain unchanged ---
     @app.route("/api/costs/summary")
     def get_costs_summary():
         return jsonify(database.get_summary_of_months())

@@ -1,6 +1,8 @@
 # backend/llm.py
 import os
 import json
+# MODIFIED: Import the base google.generativeai library
+import google.generativeai as genai
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.memory import ConversationBufferWindowMemory
@@ -13,9 +15,12 @@ from typing import List, Optional
 load_dotenv()
 
 # Ensure the Google API key is set
-if "GOOGLE_API_KEY" not in os.environ:
+api_key = os.environ.get("GOOGLE_API_KEY")
+if not api_key:
     raise ValueError("GOOGLE_API_KEY environment variable not set. Please create a .env file and add it.")
 
+# MODIFIED: Configure the base client for transcription
+genai.configure(api_key=api_key)
 
 # --- Pydantic Models for Tool Definition (using Pydantic v2) ---
 class Expense(BaseModel):
@@ -43,7 +48,7 @@ def create_expenses(expenses: List[Expense]):
 
 # --- LLM and Conversation Chain Setup ---
 
-llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite-preview-06-17", temperature=0.5, convert_system_message_to_human=True)
+llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash-latest", temperature=0.5, convert_system_message_to_human=True)
 llm_with_tools = llm.bind_tools([create_expenses], tool_choice="auto")
 memory = ConversationBufferWindowMemory(k=4, return_messages=True)
 
@@ -51,6 +56,38 @@ MONTH_NAMES = {
     1: "January", 2: "February", 3: "March", 4: "April", 5: "May", 6: "June",
     7: "July", 8: "August", 9: "September", 10: "October", 11: "November", 12: "December"
 }
+
+
+# --- MODIFIED: Function to Transcribe Audio ---
+def transcribe_audio(audio_file):
+    """
+    Transcribes the given audio file using the Gemini API.
+    
+    Args:
+        audio_file: A Flask FileStorage object containing the audio data.
+
+    Returns:
+        The transcribed text as a string.
+    """
+    model = genai.GenerativeModel('models/gemini-1.5-flash-latest')
+    prompt = "Provide a transcript for this audio."
+    
+    # Create the audio part from the FileStorage object in a format the SDK understands.
+    # We provide the raw bytes and the correct MIME type.
+    audio_part = {
+        "mime_type": audio_file.mimetype,
+        "data": audio_file.read()
+    }
+
+    # Pass the prompt and the structured audio data to the model
+    response = model.generate_content([prompt, audio_part])
+    
+    if response.parts:
+        return response.text
+    else:
+        print("Transcription failed. Full response:", response)
+        raise ValueError("The model did not return a valid transcription.")
+
 
 def _build_context_prompt(financial_context):
     """Builds a detailed string prompt from the financial data."""
@@ -76,7 +113,6 @@ def _build_context_prompt(financial_context):
         "\n--- FINANCIAL DATA SUMMARY ---\n"
     ]
 
-    # ... (rest of the prompt building is the same)
     salary = budget.get('salary', 0)
     savings_goal = budget.get('savings_goal', 0)
     prompt_parts.append(f"**Budget:**")
@@ -144,8 +180,6 @@ def get_chat_response(user_input, financial_context):
             message_parts.append("\nIs this correct?")
             reply_text = "\n".join(message_parts)
 
-        # MODIFIED: Save a specific message to memory that represents the completed action proposal.
-        # This prevents the AI from re-running the tool on its next turn.
         memory_output_for_ai = f"I have proposed creating {len(expenses_to_log)} expenses and am awaiting user confirmation. I will not propose them again."
         memory.save_context({"input": user_input}, {"output": memory_output_for_ai})
 
@@ -157,6 +191,5 @@ def get_chat_response(user_input, financial_context):
             }
         }
     else:
-        # This handles regular conversation without tool use
         memory.save_context({"input": user_input}, {"output": response.content})
         return {"reply": response.content}
