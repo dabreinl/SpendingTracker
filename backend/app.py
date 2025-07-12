@@ -14,17 +14,35 @@ def create_app():
         os.makedirs(app.instance_path)
     except OSError:
         pass
-    
+
     database.init_app(app)
 
-    # --- NEW: API Route for Audio Transcription ---
+    # --- NEW: API Route for Document Recognition ---
+    @app.route("/api/recognize", methods=["POST"])
+    def recognize_document():
+        if 'document_file' not in request.files:
+            return jsonify({"error": "No file provided"}), 400
+
+        doc_file = request.files['document_file']
+
+        if doc_file.filename == '':
+            return jsonify({"error": "No selected file"}), 400
+
+        try:
+            # The file is processed in-memory and never saved to disk
+            response_data = llm.recognize_expenses_from_file(doc_file)
+            return jsonify(response_data)
+        except Exception as e:
+            print(f"Recognition Error: {e}")
+            return jsonify({"error": "Failed to process document."}), 500
+
     @app.route("/api/transcribe", methods=["POST"])
     def transcribe_audio():
         if 'audio_file' not in request.files:
             return jsonify({"error": "No audio file provided"}), 400
-        
+
         audio_file = request.files['audio_file']
-        
+
         if audio_file.filename == '':
             return jsonify({"error": "No selected file"}), 400
 
@@ -37,7 +55,6 @@ def create_app():
             return jsonify({"error": "Failed to transcribe audio."}), 500
 
 
-    # --- MODIFIED CHAT ROUTE ---
     @app.route("/api/chat", methods=["POST"])
     def chat_with_llm():
         data = request.get_json()
@@ -47,7 +64,7 @@ def create_app():
 
         if not user_message:
             return jsonify({"error": "No message provided"}), 400
-        
+
         if not year or not month:
             return jsonify({"error": "Missing year/month context"}), 400
 
@@ -55,7 +72,7 @@ def create_app():
             month_str = str(month).rjust(2, '0')
             budget_context = database.get_budget(year, month)
             costs_context = database.get_all_costs(str(year), month_str)
-            
+
             financial_context = {
                 "year": year,
                 "month": month,
@@ -64,9 +81,9 @@ def create_app():
             }
 
             llm_response = llm.get_chat_response(user_message, financial_context)
-            
+
             return jsonify(llm_response)
-            
+
         except Exception as e:
             print(f"LLM Error: {e}")
             return jsonify({"error": "Failed to get a response from the AI model."}), 500
@@ -138,14 +155,12 @@ def create_app():
         )
         return jsonify({"success": True}), 201
 
-    # --- MODIFIED: The endpoint now accepts a dictionary of changes ---
     @app.route("/api/costs/<int:cost_id>", methods=["PUT"])
     def update_cost(cost_id):
         data = request.get_json()
         if not data:
             return jsonify({"error": "No data provided"}), 400
-        
-        # The database function now handles the logic of what to update
+
         database.update_cost(cost_id, data)
         return jsonify({"success": True}), 200
 

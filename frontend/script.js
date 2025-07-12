@@ -49,8 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const analysisOptionsGrid = document.querySelector('.analysis-options-grid');
     const analysisChartElement = document.getElementById('analysis-chart');
     const chartNoDataMessage = document.getElementById('chart-no-data-message');
-    // REMOVED chatToggleBtn selector
-    // REMOVED chatWindow selector
     const chatMessages = document.getElementById('chat-messages');
     const chatForm = document.getElementById('chat-form');
     const chatInput = document.getElementById('chat-input');
@@ -58,6 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatRecordBtn = document.getElementById('chat-record-btn');
     const visualizerCanvas = document.getElementById('visualizer');
     const visualizerCtx = visualizerCanvas.getContext('2d');
+    const importFileBtn = document.getElementById('import-file-btn');
+    const fileUploadInput = document.getElementById('file-upload-input');
 
 
     // --- Icons ---
@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const fetchBudget = (year, month) => fetchAPI(`${API_URL}/budget/${year}/${month}`);
-    
+
     const saveBudget = async () => {
         saveBudgetBtn.disabled = true;
         const budgetData = {
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(budgetData),
             });
-            
+
             saveBudgetBtn.classList.remove('is-error');
             saveBudgetBtn.classList.add('is-success');
             saveBudgetBtn.querySelector('span').textContent = 'Saved!';
@@ -147,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const fetchMonthlySummary = () => fetchAPI(`${API_URL}/summary`).then(data => { monthlySummary = data; });
-    
+
     const fetchIncomeHistory = () => fetchAPI('/api/budgets/history');
     const fetchCostsHistory = () => fetchAPI('/api/costs/history');
 
@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const deleteCost = (costId) => fetchAPI(`${API_URL}/${costId}`, { method: 'DELETE' }).then(() => { fetchMonthlySummary(); fetchAndRenderCosts(); });
-    
+
     const clearCosts = (costType) => {
         const url = new URL(`${API_URL}/clear/${costType}`, window.location.origin);
         url.searchParams.append('year', selectedYear);
@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const updateCost = (costId, costData) => fetchAPI(`${API_URL}/${costId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(costData) }).then(fetchAndRenderCosts);
     const updateCostType = (costId, newType) => fetchAPI(`${API_URL}/${costId}/type`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: newType }) }).then(fetchAndRenderCosts);
-    
+
     const fetchAllPreviousCosts = () => {
         const url = new URL(`${API_URL}/all_previous`, window.location.origin);
         url.searchParams.append('year', selectedYear);
@@ -222,6 +222,36 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const updateCheckedStatus = (costId, isChecked) => fetchAPI(`${API_URL}/${costId}/checked`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ is_checked: isChecked }) });
+
+    const recognizeFile = async (file) => {
+        const formData = new FormData();
+        formData.append('document_file', file);
+
+        addChatMessage("Analyzing your document, please wait...", "bot");
+        chatLoader.classList.remove('hidden');
+
+        try {
+            const response = await fetch('/api/recognize', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'File recognition failed');
+            }
+
+            const data = await response.json();
+            handleRecognitionResponse(data);
+
+        } catch (error) {
+            console.error("Recognition API error:", error);
+            addChatMessage("Sorry, I had trouble processing that file. Please try again.", "bot");
+        } finally {
+            chatLoader.classList.add('hidden');
+        }
+    };
+
 
     // --- Rendering Functions ---
     const renderCosts = () => {
@@ -254,10 +284,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         };
-        
+
         populateList(fixedCostsList, fixedItems);
         populateList(variableCostsList, variableItems);
-        
+
         fixedItems.forEach(c => totalFixed += c.amount);
         variableItems.forEach(c => totalVariable += c.amount);
 
@@ -271,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderTotal(totalVariableFooter, 'Variable', totalVariable, variableBudget);
         grandTotalEl.textContent = formatCurrency(totalFixed + totalVariable);
     };
-    
+
     const renderTotal = (footerElement, label, total, budget) => {
         const percentage = (budget > 0 && total > 0) ? Math.min((total / budget) * 100, 100) : 0;
         const isOverBudget = total > budget && budget > 0;
@@ -337,7 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const fixedItems = costs.filter(c => c.cost_type === 'fixed');
         const variableItems = costs.filter(c => c.cost_type === 'variable');
         if (costs.length === 0) { importFixedList.innerHTML = '<li class="empty-list-message">Nothing to import.</li>'; return; }
-        
+
         const createListItem = (cost) => {
             const listItem = document.createElement('li');
             const checkboxId = `import-checkbox-${cost.id}`;
@@ -351,10 +381,10 @@ document.addEventListener('DOMContentLoaded', () => {
             listItem.innerHTML = `
                 <label for="${checkboxId}" class="import-item-label">
                     <div class="custom-checkbox">
-                        <input type="checkbox" id="${checkboxId}" 
-                                data-name="${cost.name}" 
-                                data-amount="${cost.amount}" 
-                                data-type="${cost.cost_type}" 
+                        <input type="checkbox" id="${checkboxId}"
+                                data-name="${cost.name}"
+                                data-amount="${cost.amount}"
+                                data-type="${cost.cost_type}"
                                 data-description="${cost.description || ''}">
                         <span class="visual">${checkIcon}</span>
                     </div>
@@ -406,7 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const halfSpendPercent = Math.floor(spendablePercent / 2);
         fixedBudgetSlider.value = halfSpendPercent;
         variableBudgetSlider.value = spendablePercent - halfSpendPercent;
-        
+
         fixedPercentDisplay.textContent = fixedBudgetSlider.value;
         variablePercentDisplay.textContent = variableBudgetSlider.value;
         renderCosts();
@@ -429,7 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const changedSlider = e.target;
         const otherSlider = (changedSlider === fixedBudgetSlider) ? variableBudgetSlider : fixedBudgetSlider;
         let changedValue = parseInt(changedSlider.value);
-        
+
         let otherValue = maxCombinedPercent - changedValue;
         if (otherValue < 0) {
             changedSlider.value = maxCombinedPercent;
@@ -442,7 +472,7 @@ document.addEventListener('DOMContentLoaded', () => {
         variablePercentDisplay.textContent = variableBudgetSlider.value;
         renderCosts();
     };
-    
+
     const processHistoryData = (incomeHistory, costsHistory, chartType) => {
         const allEntries = [
             ...incomeHistory.map(i => ({ year: i.year, month: i.month })),
@@ -476,7 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth() + 1;
             const key = `${year}-${month}`;
-            
+
             labels.push(`${shortMonthNames[month - 1]} ${String(year).slice(-2)}`);
             const monthlyCosts = costsMap.get(key) || {};
 
@@ -496,7 +526,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             currentDate.setMonth(currentDate.getMonth() + 1);
         }
-        
+
         const processedData = { labels, data };
         lastChartData = processedData;
         return processedData;
@@ -506,7 +536,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (analysisChartInstance) {
             analysisChartInstance.destroy();
         }
-        
+
         analysisTitle.textContent = chartTitle;
         lastChartTitle = chartTitle;
 
@@ -516,7 +546,7 @@ document.addEventListener('DOMContentLoaded', () => {
             analysisChartElement.style.display = 'none';
             return;
         }
-        
+
         chartNoDataMessage.style.display = 'none';
         analysisChartElement.style.display = 'block';
 
@@ -526,7 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const labelColor = bodyStyles.getPropertyValue('--text-secondary').trim();
         const textColor = bodyStyles.getPropertyValue('--text-primary').trim();
         const surfaceColor = bodyStyles.getPropertyValue('--surface').trim();
-        
+
         analysisChartInstance = new Chart(currentCtx, {
             type: 'line',
             data: {
@@ -581,7 +611,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: { 
+                        ticks: {
                             color: labelColor,
                             callback: (value) => formatCurrency(value)
                         },
@@ -605,7 +635,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fetchIncomeHistory(),
             fetchCostsHistory()
         ]);
-        
+
         const chartTitles = {
             income: 'Income History',
             fixed: 'Fixed Costs History',
@@ -653,7 +683,7 @@ document.addEventListener('DOMContentLoaded', () => {
     confirmActionBtn.addEventListener('click', () => { if (confirmCallback) { confirmCallback(); } closeModal(confirmationModal); });
     confirmCancelBtn.addEventListener('click', () => closeModal(confirmationModal));
     currencySelector.addEventListener('change', (e) => { currentCurrency = e.target.value; renderCosts(); });
-    
+
     themeToggleBtn.addEventListener('click', () => {
         const newTheme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         applyTheme(newTheme);
@@ -661,7 +691,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderChart(lastChartData, lastChartTitle);
         }
     });
-    
+
     salaryInput.addEventListener('input', updateSlidersFromSavings);
     savingsGoalInput.addEventListener('input', updateSlidersFromSavings);
     [fixedBudgetSlider, variableBudgetSlider].forEach(slider => {
@@ -683,6 +713,23 @@ document.addEventListener('DOMContentLoaded', () => {
     analysisModalCloseBtn.addEventListener('click', () => closeModal(analysisModal));
     document.getElementById('analysis-modal-overlay').addEventListener('click', () => closeModal(analysisModal));
 
+    if(importFileBtn) {
+        importFileBtn.addEventListener('click', () => {
+            fileUploadInput.click();
+        });
+    }
+
+    if(fileUploadInput) {
+        fileUploadInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                recognizeFile(file);
+            }
+            e.target.value = null;
+        });
+    }
+
+
     // Drag & Drop Logic
     let draggedItem = null;
     document.addEventListener('dragstart', (e) => { const itemMain = e.target.closest('.cost-item-main'); if (itemMain) { draggedItem = itemMain.closest('li'); setTimeout(() => { draggedItem.classList.add('dragging'); }, 0); } });
@@ -698,7 +745,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const target = e.target;
         const listItem = target.closest('li');
         if (!listItem) return;
-        
+
         if (target.classList.contains('cost-checkbox') || target.closest('.custom-checkbox')) {
             const checkbox = listItem.querySelector('.cost-checkbox');
             const costId = listItem.dataset.id;
@@ -732,7 +779,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const item = document.querySelector(`.costs-list li[data-id='${currentlyEditingId}']`);
                 if (item) { exitEditMode(item); renderCosts(); }
             }
-            // REMOVED logic for hiding old chat window
         }
         if (e.key === 'Enter' && currentlyEditingId) {
             const listItem = document.querySelector(`.costs-list li[data-id='${currentlyEditingId}']`);
@@ -747,17 +793,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const addChatMessage = (htmlContent, sender) => {
         const messageElement = document.createElement('div');
         messageElement.classList.add('chat-message', `${sender}-message`);
-        
+
         let formattedHtml = htmlContent.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         formattedHtml = formattedHtml.replace(/\*(.*?)\*/g, '<em>$1</em>');
         formattedHtml = formattedHtml.replace(/\n/g, '<br>');
-        
+
+        const analyzingMsg = chatMessages.querySelector('.bot-message:last-child');
+        if (analyzingMsg && analyzingMsg.textContent.startsWith("Analyzing your document")) {
+            analyzingMsg.remove();
+        }
+
         messageElement.innerHTML = formattedHtml;
         chatMessages.appendChild(messageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     };
 
-    // --- MODIFIED: addConfirmationMessage now includes tool_name ---
     const addConfirmationMessage = (message, pendingActions) => {
         const messageElement = document.createElement('div');
         messageElement.classList.add('chat-message', 'bot-message');
@@ -767,7 +817,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formattedHtml = formattedHtml.replace(/\n/g, '<br>');
 
         const actionsHtml = `
-            <div class="chat-actions" 
+            <div class="chat-actions"
                  data-tool-name='${pendingActions.tool_name}'
                  data-expenses='${JSON.stringify(pendingActions.tool_args)}'>
                 <button class="chat-action-btn chat-confirm-btn">Confirm</button>
@@ -780,7 +830,14 @@ document.addEventListener('DOMContentLoaded', () => {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     };
 
-    // REMOVED chatToggleBtn event listener
+    const handleRecognitionResponse = (response) => {
+        if (response.pending_actions && response.pending_actions.tool_args && response.pending_actions.tool_args.length > 0) {
+            addConfirmationMessage(response.reply, response.pending_actions);
+        } else {
+            addChatMessage(response.reply, 'bot');
+        }
+    };
+
 
     chatForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -797,7 +854,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetchAPI('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     message: message,
                     year: selectedYear,
                     month: selectedMonth
@@ -805,7 +862,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (response.pending_actions) {
-                // Pass the whole pending_actions object now
                 addConfirmationMessage(response.reply, response.pending_actions);
             } else {
                 addChatMessage(response.reply, 'bot');
@@ -820,7 +876,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- MODIFIED: The chat click listener now handles multiple tools ---
     chatMessages.addEventListener('click', async (e) => {
         const confirmBtn = e.target.closest('.chat-confirm-btn');
         const cancelBtn = e.target.closest('.chat-cancel-btn');
@@ -834,7 +889,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (toolName === 'create_expenses') {
                 const dateForNewExpenses = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01T12:00:00`;
-                
+
                 const costsToImport = toolArgs.map(cost => ({
                     ...cost,
                     description: cost.description || null,
@@ -843,15 +898,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 await batchAddCosts(costsToImport);
                 addChatMessage("Done! I've added those expenses for you.", 'bot');
-            } 
-            // --- NEW: Logic to handle the edit_expense tool confirmation ---
+            }
             else if (toolName === 'edit_expense') {
                 const expenseToEdit = allCosts.find(
                     c => c.name.toLowerCase() === toolArgs.original_name.toLowerCase()
                 );
 
                 if (expenseToEdit) {
-                    // Build the payload for the PUT request
                     const updatePayload = {
                         name: toolArgs.new_name || expenseToEdit.name,
                         amount: toolArgs.new_amount || expenseToEdit.amount,
@@ -876,15 +929,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Audio Visualizer and Recording Logic ---
     const drawVisualizer = () => {
-        if (!isRecording) return; 
+        if (!isRecording) return;
 
         visualizerFrameId = requestAnimationFrame(drawVisualizer);
-        
+
         analyser.getByteTimeDomainData(dataArray);
 
         visualizerCtx.fillStyle = 'rgba(0, 0, 0, 0)';
         visualizerCtx.clearRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
-        
+
         visualizerCtx.lineWidth = 2;
         visualizerCtx.strokeStyle = getComputedStyle(body).getPropertyValue('--accent').trim();
         visualizerCtx.beginPath();
@@ -908,16 +961,16 @@ document.addEventListener('DOMContentLoaded', () => {
         visualizerCtx.lineTo(visualizerCanvas.width, visualizerCanvas.height / 2);
         visualizerCtx.stroke();
     };
-    
+
     const handleRecording = async () => {
         if (isRecording) {
             mediaRecorder.stop();
             isRecording = false;
-            
+
             cancelAnimationFrame(visualizerFrameId);
             chatForm.classList.remove('recording');
             chatRecordBtn.classList.remove('recording');
-            
+
             audioContext.close();
             chatInput.placeholder = "Transcribing...";
             chatInput.disabled = true;
@@ -926,14 +979,14 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 isRecording = true;
-                
+
                 mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
                 mediaRecorder.addEventListener("dataavailable", event => {
                     audioChunks.push(event.data);
                 });
                 mediaRecorder.start();
-                
+
                 audioContext = new AudioContext();
                 const source = audioContext.createMediaStreamSource(stream);
                 analyser = audioContext.createAnalyser();
@@ -941,7 +994,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 bufferLength = analyser.frequencyBinCount;
                 dataArray = new Uint8Array(bufferLength);
                 source.connect(analyser);
-                
+
                 chatForm.classList.add('recording');
                 chatRecordBtn.classList.add('recording');
                 chatInput.placeholder = "Recording... Click again to stop.";
@@ -951,18 +1004,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                     const formData = new FormData();
                     formData.append('audio_file', audioBlob, 'recording.webm');
-                    
+
                     try {
                         const response = await fetch('/api/transcribe', {
                             method: 'POST',
                             body: formData
                         });
-                        
+
                         if (!response.ok) {
                            const errorData = await response.json();
                            throw new Error(errorData.error || 'Transcription failed');
                         }
-                        
+
                         const data = await response.json();
                         chatInput.value = data.transcript;
 
@@ -997,13 +1050,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const budgetData = await fetchBudget(selectedYear, selectedMonth);
             await fetchAndRenderCosts();
             updateBudgetUI(budgetData);
-            addChatMessage('Welcome to your AI assistant! How can I help you with your finances today? You can ask me to log expenses like "add $15 for lunch and $50 for gas".', 'bot');
+            addChatMessage('Welcome! Ask me to log expenses, or try the "Import from File" button to scan a receipt.', 'bot');
             setTimeout(() => body.classList.remove('loading'), 500);
         } catch (error) {
             console.error("Failed to initialize app:", error);
             body.classList.remove('loading');
         }
     };
-    
+
     initializeApp();
 });

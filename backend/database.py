@@ -93,7 +93,6 @@ def delete_costs_by_type(cost_type, year, month):
     db.commit()
 
 
-# --- MODIFIED: Generalized update_cost function ---
 def update_cost(cost_id, updates):
     """
     Updates a cost record with the given data.
@@ -101,10 +100,10 @@ def update_cost(cost_id, updates):
     """
     db = get_db()
     allowed_fields = {"name", "amount", "description", "cost_type"}
-    
+
     # Sanitize the updates dictionary
     fields_to_update = {k: v for k, v in updates.items() if k in allowed_fields and v is not None}
-    
+
     if not fields_to_update:
         # No valid fields to update
         return
@@ -158,7 +157,7 @@ def get_all_budgets_history():
     query = "SELECT year, month, salary FROM budgets WHERE salary > 0 ORDER BY year, month"
     return [dict(row) for row in get_db().execute(query).fetchall()]
 
-# MODIFIED: Added function to get historical costs grouped by month and type
+
 def get_costs_history():
     query = """
         SELECT
