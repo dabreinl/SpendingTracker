@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const visualizerCtx = visualizerCanvas.getContext('2d');
     const importFileBtn = document.getElementById('import-file-btn');
     const fileUploadInput = document.getElementById('file-upload-input');
+    // --- REMOVED Privacy Modal Selectors ---
 
 
     // --- Icons ---
@@ -713,6 +714,7 @@ document.addEventListener('DOMContentLoaded', () => {
     analysisModalCloseBtn.addEventListener('click', () => closeModal(analysisModal));
     document.getElementById('analysis-modal-overlay').addEventListener('click', () => closeModal(analysisModal));
 
+    // --- MODIFIED: Simplified file import logic ---
     if(importFileBtn) {
         importFileBtn.addEventListener('click', () => {
             fileUploadInput.click();
@@ -1050,7 +1052,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const budgetData = await fetchBudget(selectedYear, selectedMonth);
             await fetchAndRenderCosts();
             updateBudgetUI(budgetData);
-            addChatMessage('Welcome! Ask me to log expenses, or try the "Import from File" button to scan a receipt.', 'bot');
+            addChatMessage('Welcome! See the instructions above to get started.', 'bot');
             setTimeout(() => body.classList.remove('loading'), 500);
         } catch (error) {
             console.error("Failed to initialize app:", error);

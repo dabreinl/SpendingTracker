@@ -33,6 +33,31 @@
             </div>
         </header>
 
+        <div class="top-info-container">
+            <section class="card instructions-card">
+                <h2 class="card-title">How to Use Your Financial Tracker</h2>
+                <ul class="instructions-list">
+                    <li><span>Set Your Budget:</span> Use the 'Monthly Budget' card to set your income and savings goals.</li>
+                    <li><span>Log Expenses Manually:</span> Add expenses one-by-one using the 'Log New Expense' form.</li>
+                    <li><span>Talk to the AI:</span> Use the 'Ask Gemini' panel to log expenses ("add $15 for lunch"), edit them ("change lunch to $18"), or ask questions.</li>
+                    <li><span>Use Your Voice:</span> Click the microphone icon in the chat to record your commands.</li>
+                    <li><span>Scan a Receipt:</span> Use the 'Import from File' button to upload a receipt, and the AI will extract the expenses for you.</li>
+                </ul>
+            </section>
+            <section class="card privacy-card">
+                <h2 class="card-title">Data Privacy Notice</h2>
+                <div class="privacy-modal-body">
+                    <p>When using the 'Import from File' feature, your document is securely sent to Google's AI for processing.</p>
+                    <ul class="privacy-points">
+                        <li>✅ Your document is <strong>never</strong> stored on our servers.</li>
+                        <li>✅ Google will <strong>not</strong> use your data to train its AI models.</li>
+                        <li>✅ You will be asked to confirm all extracted expenses before they are saved.</li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+
+
         <div class="app-grid-container">
             <main class="main-content">
                 <div class="layout-column-left">
@@ -159,6 +184,7 @@
                 </form>
             </aside>
         </div>
+        <div class="page-footer-padding"></div>
     </div>
 
     <div id="date-picker-modal" class="modal-container hidden">
@@ -242,6 +268,6 @@
             </div>
         </div>
     </div>
-
+    
     </body>
 </html>
