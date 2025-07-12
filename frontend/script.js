@@ -58,8 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const visualizerCtx = visualizerCanvas.getContext('2d');
     const importFileBtn = document.getElementById('import-file-btn');
     const fileUploadInput = document.getElementById('file-upload-input');
-    // --- REMOVED Privacy Modal Selectors ---
-
 
     // --- Icons ---
     const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
@@ -148,7 +146,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const fetchMonthlySummary = () => fetchAPI(`${API_URL}/summary`).then(data => { monthlySummary = data; });
-
     const fetchIncomeHistory = () => fetchAPI('/api/budgets/history');
     const fetchCostsHistory = () => fetchAPI('/api/costs/history');
 
@@ -253,7 +250,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-
     // --- Rendering Functions ---
     const renderCosts = () => {
         let totalFixed = 0; let totalVariable = 0;
@@ -265,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const isChecked = cost.is_checked === 1;
             const checkboxId = `cost-check-${cost.id}`;
             const descriptionHTML = (descriptionText && descriptionText !== 'null') ? `<p class="cost-description">${descriptionText}</p>` : '';
-            return `<div class="cost-item-main" draggable="true"><div class="custom-checkbox"><input type="checkbox" class="cost-checkbox" id="${checkboxId}" ${isChecked ? 'checked' : ''}><label for="${checkboxId}" class="visual">${checkIcon}</label></div><div class="cost-details"><div class="view-mode"><div class="cost-main-info"><span class="cost-name">${cost.name}</span><span class="cost-amount">${formatCurrency(cost.amount)}</span></div>${descriptionHTML}</div><div class="edit-mode"><div class="edit-name-amount"><input type="text" class="edit-name" value="${cost.name}" required><input type="number" class="edit-amount" value="${cost.amount}" min="0.01" step="0.01" required></div><textarea class="edit-description" rows="2" placeholder="Description...">${descriptionText}</textarea></div></div></div><div class="item-actions"><button class="edit-btn" aria-label="Edit"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"></path><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"></path></svg></button><button class="delete-btn" aria-label="Delete"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg></button><button class="save-btn" aria-label="Save"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></button><button class="cancel-btn" aria-label="Cancel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg></button></div>`;
+            return `<div class="cost-item-main" draggable="true"><div class="custom-checkbox"><input type="checkbox" class="cost-checkbox" id="${checkboxId}" ${isChecked ? 'checked' : ''}><label for="${checkboxId}" class="visual">${checkIcon}</label></div><div class="cost-details"><div class="view-mode"><div class="cost-main-info"><span class="cost-name">${cost.name}</span><span class="cost-amount">${formatCurrency(cost.amount)}</span></div>${descriptionHTML}</div><div class="edit-mode"><div class="edit-name-amount"><input type="text" class="edit-name" value="${cost.name}" required><input type="number" class="edit-amount" value="${cost.amount}" min="0.01" step="0.01" required></div><textarea class="edit-description" rows="2" placeholder="Description...">${descriptionText}</textarea></div></div></div><div class="item-actions"><button class="edit-btn" aria-label="Edit"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"></path><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"></path></svg></button><button class="delete-btn" aria-label="Delete"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg></button><button class="save-btn" aria-label="Save"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></button></div>`;
         };
 
         const populateList = (listElement, items) => {
@@ -428,16 +424,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateSlidersFromSavings = () => {
         const salary = parseFloat(salaryInput.value) || 0;
         const savings = parseFloat(savingsGoalInput.value) || 0;
-
         if (salary === 0) return;
-
         const spendableAmount = Math.max(0, salary - savings);
         const spendablePercent = Math.round((spendableAmount / salary) * 100);
-
         const halfSpendPercent = Math.floor(spendablePercent / 2);
         fixedBudgetSlider.value = halfSpendPercent;
         variableBudgetSlider.value = spendablePercent - halfSpendPercent;
-
         fixedPercentDisplay.textContent = fixedBudgetSlider.value;
         variablePercentDisplay.textContent = variableBudgetSlider.value;
         renderCosts();
@@ -456,11 +448,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const spendableAmount = Math.max(0, salary - savings);
         const maxCombinedPercent = Math.round((spendableAmount / salary) * 100);
-
         const changedSlider = e.target;
         const otherSlider = (changedSlider === fixedBudgetSlider) ? variableBudgetSlider : fixedBudgetSlider;
         let changedValue = parseInt(changedSlider.value);
-
         let otherValue = maxCombinedPercent - changedValue;
         if (otherValue < 0) {
             changedSlider.value = maxCombinedPercent;
@@ -468,7 +458,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             otherSlider.value = otherValue;
         }
-
         fixedPercentDisplay.textContent = fixedBudgetSlider.value;
         variablePercentDisplay.textContent = variableBudgetSlider.value;
         renderCosts();
@@ -479,14 +468,10 @@ document.addEventListener('DOMContentLoaded', () => {
             ...incomeHistory.map(i => ({ year: i.year, month: i.month })),
             ...(costsHistory || []).map(c => ({ year: parseInt(c.year), month: parseInt(c.month) }))
         ];
-
         if (allEntries.length === 0) return null;
-
         allEntries.sort((a, b) => a.year - b.year || a.month - b.month);
-
         const firstEntry = allEntries[0];
         const lastEntry = allEntries[allEntries.length - 1];
-
         const incomeMap = new Map(incomeHistory.map(item => [`${item.year}-${item.month}`, item.salary]));
         const costsMap = new Map();
         if (costsHistory) {
@@ -496,38 +481,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 costsMap.get(key)[item.cost_type] = item.total;
             });
         }
-
         let currentDate = new Date(firstEntry.year, firstEntry.month - 1);
         const lastDate = new Date(lastEntry.year, lastEntry.month - 1);
-
         const labels = [];
         const data = [];
-
         while (currentDate <= lastDate) {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth() + 1;
             const key = `${year}-${month}`;
-
             labels.push(`${shortMonthNames[month - 1]} ${String(year).slice(-2)}`);
             const monthlyCosts = costsMap.get(key) || {};
-
             switch(chartType) {
-                case 'income':
-                    data.push(incomeMap.get(key) || 0);
-                    break;
-                case 'fixed':
-                    data.push(monthlyCosts.fixed || 0);
-                    break;
-                case 'variable':
-                    data.push(monthlyCosts.variable || 0);
-                    break;
-                case 'overall':
-                    data.push((monthlyCosts.fixed || 0) + (monthlyCosts.variable || 0));
-                    break;
+                case 'income': data.push(incomeMap.get(key) || 0); break;
+                case 'fixed': data.push(monthlyCosts.fixed || 0); break;
+                case 'variable': data.push(monthlyCosts.variable || 0); break;
+                case 'overall': data.push((monthlyCosts.fixed || 0) + (monthlyCosts.variable || 0)); break;
             }
             currentDate.setMonth(currentDate.getMonth() + 1);
         }
-
         const processedData = { labels, data };
         lastChartData = processedData;
         return processedData;
@@ -537,7 +508,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (analysisChartInstance) {
             analysisChartInstance.destroy();
         }
-
         analysisTitle.textContent = chartTitle;
         lastChartTitle = chartTitle;
 
@@ -569,18 +539,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     backgroundColor: function(context) {
                         const chart = context.chart;
                         const { ctx, chartArea } = chart;
-                        if (!chartArea || chartArea.bottom <= chartArea.top) {
-                            return null;
-                        }
+                        if (!chartArea || chartArea.bottom <= chartArea.top) return null;
                         try {
                             const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
                             gradient.addColorStop(0, 'rgba(42, 101, 247, 0.4)');
                             gradient.addColorStop(1, 'rgba(42, 101, 247, 0)');
                             return gradient;
-                        } catch (error) {
-                            console.error("Failed to create chart gradient:", error);
-                            return 'rgba(42, 101, 247, 0.2)';
-                        }
+                        } catch (error) { return 'rgba(42, 101, 247, 0.2)'; }
                     },
                     fill: true,
                     tension: 0.4,
@@ -597,31 +562,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 plugins: {
                     legend: { display: false },
                     tooltip: {
-                        backgroundColor: surfaceColor,
-                        titleColor: textColor,
-                        bodyColor: textColor,
-                        borderColor: gridColor,
-                        borderWidth: 1,
-                        padding: 10,
-                        displayColors: false,
-                        callbacks: {
-                            label: (context) => `${context.dataset.label}: ${formatCurrency(context.raw)}`
-                        }
+                        backgroundColor: surfaceColor, titleColor: textColor, bodyColor: textColor,
+                        borderColor: gridColor, borderWidth: 1, padding: 10, displayColors: false,
+                        callbacks: { label: (context) => `${context.dataset.label}: ${formatCurrency(context.raw)}` }
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: {
-                            color: labelColor,
-                            callback: (value) => formatCurrency(value)
-                        },
+                        ticks: { color: labelColor, callback: (value) => formatCurrency(value) },
                         grid: { color: gridColor }
                     },
-                    x: {
-                        ticks: { color: labelColor },
-                        grid: { display: false }
-                    }
+                    x: { ticks: { color: labelColor }, grid: { display: false } }
                 }
             }
         });
@@ -631,19 +583,11 @@ document.addEventListener('DOMContentLoaded', () => {
         closeModal(analysisChooserModal);
         analysisTitle.textContent = 'Loading Chart Data...';
         openModal(analysisModal);
-
-        const [incomeHistory, costsHistory] = await Promise.all([
-            fetchIncomeHistory(),
-            fetchCostsHistory()
-        ]);
-
+        const [incomeHistory, costsHistory] = await Promise.all([ fetchIncomeHistory(), fetchCostsHistory() ]);
         const chartTitles = {
-            income: 'Income History',
-            fixed: 'Fixed Costs History',
-            variable: 'Variable Costs History',
-            overall: 'Overall Costs History'
+            income: 'Income History', fixed: 'Fixed Costs History',
+            variable: 'Variable Costs History', overall: 'Overall Costs History'
         };
-
         const processedData = processHistoryData(incomeHistory, costsHistory, chartType);
         renderChart(processedData, chartTitles[chartType]);
     };
@@ -651,11 +595,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Event Listeners ---
     addExpenseBtn.addEventListener('click', () => { const selectedType = document.querySelector('input[name="expense-type"]:checked').value; addCost(expenseNameInput.value, expenseAmountInput.value, expenseDescriptionInput.value, selectedType); });
     datePickerBtn.addEventListener('click', () => { displayedYearInPicker = selectedYear; renderMonthGrid(displayedYearInPicker); openModal(datePickerModal); });
-    document.querySelectorAll('.modal-overlay').forEach(overlay => {
-        if (!overlay.id.includes('analysis')) {
-             overlay.addEventListener('click', (e) => closeModal(e.target.closest('.modal-container')));
-        }
-    });
+    document.querySelectorAll('.modal-overlay').forEach(overlay => overlay.addEventListener('click', (e) => closeModal(e.target.closest('.modal-container'))));
     prevYearBtn.addEventListener('click', () => { displayedYearInPicker--; renderMonthGrid(displayedYearInPicker); });
     nextYearBtn.addEventListener('click', () => { displayedYearInPicker++; renderMonthGrid(displayedYearInPicker); });
     monthGrid.addEventListener('click', async (e) => {
@@ -686,7 +626,7 @@ document.addEventListener('DOMContentLoaded', () => {
     currencySelector.addEventListener('change', (e) => { currentCurrency = e.target.value; renderCosts(); });
 
     themeToggleBtn.addEventListener('click', () => {
-        const newTheme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        const newTheme = body.getAttribute('data-theme') === 'dark' ? 'neutral' : 'dark';
         applyTheme(newTheme);
         if (!analysisModal.classList.contains('hidden') && lastChartData) {
             renderChart(lastChartData, lastChartTitle);
@@ -695,10 +635,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     salaryInput.addEventListener('input', updateSlidersFromSavings);
     savingsGoalInput.addEventListener('input', updateSlidersFromSavings);
-    [fixedBudgetSlider, variableBudgetSlider].forEach(slider => {
-        slider.addEventListener('input', handleSliderAdjustment);
-    });
-
+    [fixedBudgetSlider, variableBudgetSlider].forEach(slider => slider.addEventListener('input', handleSliderAdjustment));
     saveBudgetBtn.addEventListener('click', saveBudget);
 
     analyzeDataBtn.addEventListener('click', () => openModal(analysisChooserModal));
@@ -714,23 +651,14 @@ document.addEventListener('DOMContentLoaded', () => {
     analysisModalCloseBtn.addEventListener('click', () => closeModal(analysisModal));
     document.getElementById('analysis-modal-overlay').addEventListener('click', () => closeModal(analysisModal));
 
-    // --- MODIFIED: Simplified file import logic ---
-    if(importFileBtn) {
-        importFileBtn.addEventListener('click', () => {
-            fileUploadInput.click();
-        });
-    }
-
+    if(importFileBtn) { importFileBtn.addEventListener('click', () => { fileUploadInput.click(); }); }
     if(fileUploadInput) {
         fileUploadInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
-            if (file) {
-                recognizeFile(file);
-            }
+            if (file) { recognizeFile(file); }
             e.target.value = null;
         });
     }
-
 
     // Drag & Drop Logic
     let draggedItem = null;
@@ -761,7 +689,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!actionButton) return;
         const costId = listItem.dataset.id;
         if (actionButton.classList.contains('edit-btn')) { enterEditMode(listItem); }
-        if (actionButton.classList.contains('cancel-btn')) { exitEditMode(listItem); renderCosts(); }
         if (actionButton.classList.contains('delete-btn')) { openConfirmationModal('Delete Expense?', 'Are you sure you want to delete this item?', () => deleteCost(costId)); }
         if (actionButton.classList.contains('save-btn')) {
             const name = listItem.querySelector('.edit-name').value;
@@ -840,7 +767,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-
     chatForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const message = chatInput.value.trim();
@@ -848,7 +774,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         addChatMessage(message, 'user');
         chatInput.value = '';
-
         chatLoader.classList.remove('hidden');
         chatInput.disabled = true;
 
@@ -862,13 +787,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     month: selectedMonth
                 })
             });
-
             if (response.pending_actions) {
                 addConfirmationMessage(response.reply, response.pending_actions);
             } else {
                 addChatMessage(response.reply, 'bot');
             }
-
         } catch (error) {
             addChatMessage("Sorry, I'm having trouble connecting to my brain right now. Please try again later.", 'bot');
         } finally {
@@ -882,7 +805,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const confirmBtn = e.target.closest('.chat-confirm-btn');
         const cancelBtn = e.target.closest('.chat-cancel-btn');
         const actionsContainer = e.target.closest('.chat-actions');
-
         if (!actionsContainer) return;
 
         if (confirmBtn) {
@@ -891,21 +813,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (toolName === 'create_expenses') {
                 const dateForNewExpenses = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01T12:00:00`;
-
                 const costsToImport = toolArgs.map(cost => ({
                     ...cost,
                     description: cost.description || null,
                     date: dateForNewExpenses
                 }));
-
                 await batchAddCosts(costsToImport);
                 addChatMessage("Done! I've added those expenses for you.", 'bot');
-            }
-            else if (toolName === 'edit_expense') {
-                const expenseToEdit = allCosts.find(
-                    c => c.name.toLowerCase() === toolArgs.original_name.toLowerCase()
-                );
-
+            } else if (toolName === 'edit_expense') {
+                const expenseToEdit = allCosts.find(c => c.name.toLowerCase() === toolArgs.original_name.toLowerCase());
                 if (expenseToEdit) {
                     const updatePayload = {
                         name: toolArgs.new_name || expenseToEdit.name,
@@ -913,7 +829,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         cost_type: toolArgs.new_type || expenseToEdit.cost_type,
                         description: toolArgs.new_description !== undefined ? toolArgs.new_description : expenseToEdit.description,
                     };
-
                     await updateCost(expenseToEdit.id, updatePayload);
                     addChatMessage("Great, I've updated that expense for you.", 'bot');
                 } else {
@@ -921,45 +836,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         }
-
-        if (cancelBtn) {
-            addChatMessage("Okay, I've cancelled the request.", 'bot');
-        }
-
+        if (cancelBtn) { addChatMessage("Okay, I've cancelled the request.", 'bot'); }
         actionsContainer.remove();
     });
 
     // --- Audio Visualizer and Recording Logic ---
     const drawVisualizer = () => {
         if (!isRecording) return;
-
         visualizerFrameId = requestAnimationFrame(drawVisualizer);
-
         analyser.getByteTimeDomainData(dataArray);
-
         visualizerCtx.fillStyle = 'rgba(0, 0, 0, 0)';
         visualizerCtx.clearRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
-
         visualizerCtx.lineWidth = 2;
         visualizerCtx.strokeStyle = getComputedStyle(body).getPropertyValue('--accent').trim();
         visualizerCtx.beginPath();
-
         const sliceWidth = visualizerCanvas.width * 1.0 / bufferLength;
         let x = 0;
-
         for (let i = 0; i < bufferLength; i++) {
             const v = dataArray[i] / 128.0;
             const y = v * visualizerCanvas.height / 2;
-
-            if (i === 0) {
-                visualizerCtx.moveTo(x, y);
-            } else {
-                visualizerCtx.lineTo(x, y);
-            }
-
+            if (i === 0) { visualizerCtx.moveTo(x, y); } else { visualizerCtx.lineTo(x, y); }
             x += sliceWidth;
         }
-
         visualizerCtx.lineTo(visualizerCanvas.width, visualizerCanvas.height / 2);
         visualizerCtx.stroke();
     };
@@ -968,27 +866,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isRecording) {
             mediaRecorder.stop();
             isRecording = false;
-
             cancelAnimationFrame(visualizerFrameId);
             chatForm.classList.remove('recording');
             chatRecordBtn.classList.remove('recording');
-
             audioContext.close();
             chatInput.placeholder = "Transcribing...";
             chatInput.disabled = true;
-
         } else {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 isRecording = true;
-
                 mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
-                mediaRecorder.addEventListener("dataavailable", event => {
-                    audioChunks.push(event.data);
-                });
+                mediaRecorder.addEventListener("dataavailable", event => { audioChunks.push(event.data); });
                 mediaRecorder.start();
-
                 audioContext = new AudioContext();
                 const source = audioContext.createMediaStreamSource(stream);
                 analyser = audioContext.createAnalyser();
@@ -996,31 +887,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 bufferLength = analyser.frequencyBinCount;
                 dataArray = new Uint8Array(bufferLength);
                 source.connect(analyser);
-
                 chatForm.classList.add('recording');
                 chatRecordBtn.classList.add('recording');
                 chatInput.placeholder = "Recording... Click again to stop.";
                 drawVisualizer();
-
                 mediaRecorder.addEventListener("stop", async () => {
                     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                     const formData = new FormData();
                     formData.append('audio_file', audioBlob, 'recording.webm');
-
                     try {
-                        const response = await fetch('/api/transcribe', {
-                            method: 'POST',
-                            body: formData
-                        });
-
+                        const response = await fetch('/api/transcribe', { method: 'POST', body: formData });
                         if (!response.ok) {
-                           const errorData = await response.json();
-                           throw new Error(errorData.error || 'Transcription failed');
+                            const errorData = await response.json();
+                            throw new Error(errorData.error || 'Transcription failed');
                         }
-
                         const data = await response.json();
                         chatInput.value = data.transcript;
-
                     } catch (error) {
                         console.error("Transcription error:", error);
                         addChatMessage(`Sorry, I couldn't understand that. Please try again.`, 'bot');
@@ -1031,7 +913,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         stream.getTracks().forEach(track => track.stop());
                     }
                 });
-
             } catch (err) {
                 console.error("Error accessing microphone:", err);
                 addChatMessage("I need microphone access to hear you. Please enable it in your browser settings.", 'bot');
@@ -1044,7 +925,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Initial Load ---
     const initializeApp = async () => {
-        applyTheme(localStorage.getItem('theme') || 'light');
+        applyTheme(localStorage.getItem('theme') || 'neutral');
         updateDatePickerButtonText();
         chatLoader.classList.add('hidden');
         try {
@@ -1052,8 +933,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const budgetData = await fetchBudget(selectedYear, selectedMonth);
             await fetchAndRenderCosts();
             updateBudgetUI(budgetData);
-            addChatMessage('Welcome! See the instructions above to get started.', 'bot');
-            setTimeout(() => body.classList.remove('loading'), 500);
+            const welcomeMessage = `Welcome to Momentum! Here's how to get started:
+            \n- **Set Your Budget**: Use the 'Monthly Budget' card to set your income and savings goals.
+            - **Log Expenses**: Add costs manually, or just tell me, like *"add $15 for lunch and $4.50 for coffee"*.
+            - **Use Your Voice**: Click the microphone to record commands.
+            - **Scan a Receipt**: Use the 'Import from File' button to have me scan a document for expenses.
+            \nHow can I help you get started?`;
+            addChatMessage(welcomeMessage, 'bot');
+            setTimeout(() => body.classList.remove('loading'), 300);
         } catch (error) {
             console.error("Failed to initialize app:", error);
             body.classList.remove('loading');
