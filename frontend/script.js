@@ -933,11 +933,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const budgetData = await fetchBudget(selectedYear, selectedMonth);
             await fetchAndRenderCosts();
             updateBudgetUI(budgetData);
-            const welcomeMessage = `Welcome to Momentum! Here's how to get started:
-            \n- **Set Your Budget**: Use the 'Monthly Budget' card to set your income and savings goals.
-            - **Log Expenses**: Add costs manually, or just tell me, like *"add $15 for lunch and $4.50 for coffee"*.
-            - **Use Your Voice**: Click the microphone to record commands.
-            - **Scan a Receipt**: Use the 'Import from File' button to have me scan a document for expenses.
+            const welcomeMessage = `Welcome to momentum! Here's how to get started:
+            \n- **Set Your Budget:** Use the 'Monthly Budget' card to set your income and savings goals.
+            - **Log Expenses:** Add costs manually, or just tell me, like *"add $15 for lunch and $4.50 for coffee".*
+            - **Use Your Voice:** Click the microphone to record commands.
+            - **Scan a Receipt:** Use the 'Import from File' button to have me scan a document for expenses.
             \nHow can I help you get started?`;
             addChatMessage(welcomeMessage, 'bot');
             setTimeout(() => body.classList.remove('loading'), 300);

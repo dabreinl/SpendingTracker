@@ -241,7 +241,14 @@ li:not(.is-editing) .save-btn, li:not(.is-editing) .cancel-btn { display: none; 
 .analysis-option-btn:hover { border-color: var(--accent); background-color: color-mix(in srgb, var(--accent) 10%, transparent); color: var(--accent); transform: translateY(-2px); }
 
 /* --- Chat Feature Styles --- */
-.chat-panel { height: calc(100vh - 8rem); max-height: 1200px; display: flex; flex-direction: column; padding: 0; }
+.chat-panel {
+    height: calc(100vh - 8rem);
+    max-height: 1200px;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden; /* MODIFIED: This is the fix */
+}
 .chat-header { padding: 1.25rem; border-bottom: 1px solid var(--border); text-align: center; flex-shrink: 0; }
 .chat-header h3 { font-size: 1.1rem; font-weight: 600; }
 .chat-header p { font-size: 0.8rem; color: var(--text-secondary); }
