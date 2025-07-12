@@ -93,12 +93,28 @@ def delete_costs_by_type(cost_type, year, month):
     db.commit()
 
 
-def update_cost(cost_id, name, amount, description):
+# --- MODIFIED: Generalized update_cost function ---
+def update_cost(cost_id, updates):
+    """
+    Updates a cost record with the given data.
+    'updates' is a dictionary containing the fields to update.
+    """
     db = get_db()
-    db.execute(
-        "UPDATE costs SET name = ?, amount = ?, description = ? WHERE id = ?",
-        (name, amount, description, cost_id),
-    )
+    allowed_fields = {"name", "amount", "description", "cost_type"}
+    
+    # Sanitize the updates dictionary
+    fields_to_update = {k: v for k, v in updates.items() if k in allowed_fields and v is not None}
+    
+    if not fields_to_update:
+        # No valid fields to update
+        return
+
+    set_clause = ", ".join([f"{key} = ?" for key in fields_to_update.keys()])
+    params = list(fields_to_update.values())
+    params.append(cost_id)
+
+    query = f"UPDATE costs SET {set_clause} WHERE id = ?"
+    db.execute(query, tuple(params))
     db.commit()
 
 

@@ -138,14 +138,15 @@ def create_app():
         )
         return jsonify({"success": True}), 201
 
+    # --- MODIFIED: The endpoint now accepts a dictionary of changes ---
     @app.route("/api/costs/<int:cost_id>", methods=["PUT"])
     def update_cost(cost_id):
         data = request.get_json()
-        required = ["name", "amount"]
-        if not data or not all(k in data for k in required):
-            return jsonify({"error": "Missing name or amount"}), 400
-        description = data.get("description", None)
-        database.update_cost(cost_id, data["name"], float(data["amount"]), description)
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+        
+        # The database function now handles the logic of what to update
+        database.update_cost(cost_id, data)
         return jsonify({"success": True}), 200
 
     @app.route("/api/costs/<int:cost_id>", methods=["DELETE"])

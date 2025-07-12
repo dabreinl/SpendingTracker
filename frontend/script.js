@@ -757,7 +757,8 @@ document.addEventListener('DOMContentLoaded', () => {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     };
 
-    const addConfirmationMessage = (message, expenses) => {
+    // --- MODIFIED: addConfirmationMessage now includes tool_name ---
+    const addConfirmationMessage = (message, pendingActions) => {
         const messageElement = document.createElement('div');
         messageElement.classList.add('chat-message', 'bot-message');
 
@@ -766,7 +767,9 @@ document.addEventListener('DOMContentLoaded', () => {
         formattedHtml = formattedHtml.replace(/\n/g, '<br>');
 
         const actionsHtml = `
-            <div class="chat-actions" data-expenses='${JSON.stringify(expenses)}'>
+            <div class="chat-actions" 
+                 data-tool-name='${pendingActions.tool_name}'
+                 data-expenses='${JSON.stringify(pendingActions.tool_args)}'>
                 <button class="chat-action-btn chat-confirm-btn">Confirm</button>
                 <button class="chat-action-btn chat-cancel-btn">Cancel</button>
             </div>
@@ -801,8 +804,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
             });
 
-            if (response.pending_actions && response.pending_actions.tool_name === 'create_expenses') {
-                addConfirmationMessage(response.reply, response.pending_actions.tool_args);
+            if (response.pending_actions) {
+                // Pass the whole pending_actions object now
+                addConfirmationMessage(response.reply, response.pending_actions);
             } else {
                 addChatMessage(response.reply, 'bot');
             }
@@ -816,6 +820,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- MODIFIED: The chat click listener now handles multiple tools ---
     chatMessages.addEventListener('click', async (e) => {
         const confirmBtn = e.target.closest('.chat-confirm-btn');
         const cancelBtn = e.target.closest('.chat-cancel-btn');
@@ -824,17 +829,42 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!actionsContainer) return;
 
         if (confirmBtn) {
-            const expensesData = JSON.parse(actionsContainer.dataset.expenses);
-            const dateForNewExpenses = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01T12:00:00`;
-            
-            const costsToImport = expensesData.map(cost => ({
-                ...cost,
-                description: cost.description || null,
-                date: dateForNewExpenses
-            }));
+            const toolName = actionsContainer.dataset.toolName;
+            const toolArgs = JSON.parse(actionsContainer.dataset.expenses);
 
-            await batchAddCosts(costsToImport);
-            addChatMessage("Done! I've added those expenses for you.", 'bot');
+            if (toolName === 'create_expenses') {
+                const dateForNewExpenses = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01T12:00:00`;
+                
+                const costsToImport = toolArgs.map(cost => ({
+                    ...cost,
+                    description: cost.description || null,
+                    date: dateForNewExpenses
+                }));
+
+                await batchAddCosts(costsToImport);
+                addChatMessage("Done! I've added those expenses for you.", 'bot');
+            } 
+            // --- NEW: Logic to handle the edit_expense tool confirmation ---
+            else if (toolName === 'edit_expense') {
+                const expenseToEdit = allCosts.find(
+                    c => c.name.toLowerCase() === toolArgs.original_name.toLowerCase()
+                );
+
+                if (expenseToEdit) {
+                    // Build the payload for the PUT request
+                    const updatePayload = {
+                        name: toolArgs.new_name || expenseToEdit.name,
+                        amount: toolArgs.new_amount || expenseToEdit.amount,
+                        cost_type: toolArgs.new_type || expenseToEdit.cost_type,
+                        description: toolArgs.new_description !== undefined ? toolArgs.new_description : expenseToEdit.description,
+                    };
+
+                    await updateCost(expenseToEdit.id, updatePayload);
+                    addChatMessage("Great, I've updated that expense for you.", 'bot');
+                } else {
+                    addChatMessage(`Sorry, I couldn't find an expense named '${toolArgs.original_name}' to edit.`, 'bot');
+                }
+            }
         }
 
         if (cancelBtn) {

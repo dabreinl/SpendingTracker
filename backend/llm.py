@@ -34,22 +34,51 @@ class CreateExpensesArgs(BaseModel):
     """Input model for the create_expenses tool."""
     expenses: List[Expense] = Field(description="A list of one or more expense items to be logged.")
 
+# --- NEW: Pydantic Model for the Edit Expense Tool ---
+class EditExpenseArgs(BaseModel):
+    """Input model for the edit_expense tool."""
+    original_name: str = Field(description="The original name of the expense to be edited. This must match an existing expense from the user's list exactly.")
+    new_name: Optional[str] = Field(default=None, description="The new name for the expense.")
+    new_amount: Optional[float] = Field(default=None, description="The new amount for the expense.")
+    new_type: Optional[str] = Field(default=None, description="The new type for the expense. Must be 'fixed' or 'variable'.")
+    new_description: Optional[str] = Field(default=None, description="The new description for the expense.")
+
 
 # --- Tool Definition (using modern @tool decorator) ---
 @tool(args_schema=CreateExpensesArgs)
 def create_expenses(expenses: List[Expense]):
     """
-    Use this tool when you need to log one or more financial expenses.
+    Use this tool when you need to log one or more new financial expenses.
     The user must confirm these expenses before they are officially saved.
     """
     # Using .model_dump() is the Pydantic v2 equivalent of .dict()
     return [expense.model_dump() for expense in expenses]
 
+# --- NEW: Tool Definition for Editing an Expense ---
+@tool(args_schema=EditExpenseArgs)
+def edit_expense(original_name: str, new_name: Optional[str] = None, new_amount: Optional[float] = None, new_type: Optional[str] = None, new_description: Optional[str] = None):
+    """
+    Use this tool when the user wants to change or update an existing expense.
+    You must use the 'original_name' to identify the expense to change.
+    Only include the parameters for the fields that the user wants to modify.
+    The user must confirm these changes before they are officially saved.
+    """
+    args = {
+        "original_name": original_name,
+        "new_name": new_name,
+        "new_amount": new_amount,
+        "new_type": new_type,
+        "new_description": new_description,
+    }
+    # Return a dictionary of the arguments that were actually provided
+    return {k: v for k, v in args.items() if v is not None}
+
 
 # --- LLM and Conversation Chain Setup ---
 
 llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.5, convert_system_message_to_human=True)
-llm_with_tools = llm.bind_tools([create_expenses], tool_choice="auto")
+# MODIFIED: Bind the new edit_expense tool
+llm_with_tools = llm.bind_tools([create_expenses, edit_expense], tool_choice="auto")
 memory = ConversationBufferWindowMemory(k=4, return_messages=True)
 
 MONTH_NAMES = {
@@ -100,12 +129,21 @@ def _build_context_prompt(financial_context):
     prompt_parts = [
         f"You are a helpful and friendly financial assistant. It is currently {month_name} {year}.",
         "Your primary goal is to help the user manage their finances.",
-        "When the user asks you to log, add, or create expenses, you must use the 'create_expenses' tool.",
         
         "--- Expense Creation Rules ---",
+        "When the user asks you to log, add, or create expenses, you must use the 'create_expenses' tool.",
         "1. You MUST decide if an expense is 'fixed' or 'variable'. Fixed costs are recurring and predictable (e.g., rent, internet bill, Netflix subscription). Variable costs fluctuate (e.g., coffee, gas, groceries, concert tickets).",
         "2. If the user provides extra details or notes about an expense, you MUST capture this in the 'description' field.",
         "3. After you decide to use the tool, formulate a friendly, conversational question asking the user to confirm the expenses you've identified.",
+        "-----------------------------",
+
+        # --- NEW: Added rules for the new edit_expense tool ---
+        "--- Expense Editing Rules ---",
+        "When the user asks to change, modify, or edit an existing expense, you must use the 'edit_expense' tool.",
+        "1. You MUST use the 'original_name' argument to identify the expense. Get this name from the 'Financial Data Summary' below. Be precise.",
+        "2. Only include the arguments for the fields that are changing (e.g., new_amount, new_type).",
+        "3. If the user is ambiguous about which expense to edit (e.g., they have two expenses named 'Coffee'), ask them to clarify before using the tool.",
+        "4. After deciding to use the tool, ask the user a clear question to confirm the proposed change.",
         "-----------------------------",
 
         "Analyze the user's financial data provided below to answer their other questions.",
@@ -166,30 +204,57 @@ def get_chat_response(user_input, financial_context):
 
     if response.tool_calls:
         tool_call = response.tool_calls[0]
-        expenses_to_log = tool_call['args']['expenses']
-        
+        tool_args = tool_call['args']
         reply_text = response.content
-
-        if not reply_text or reply_text.isspace():
-            message_parts = ["I'm ready to log the following expenses for you:\n"]
-            for expense in expenses_to_log:
-                desc_part = f" (Note: *{expense['description']}*)" if expense.get('description') else ""
-                message_parts.append(
-                    f"- **{expense['name']}**: ${expense['amount']:.2f} ({expense['type'].capitalize()}){desc_part}"
-                )
-            message_parts.append("\nIs this correct?")
-            reply_text = "\n".join(message_parts)
-
-        memory_output_for_ai = f"I have proposed creating {len(expenses_to_log)} expenses and am awaiting user confirmation. I will not propose them again."
-        memory.save_context({"input": user_input}, {"output": memory_output_for_ai})
-
-        return {
-            "reply": reply_text,
-            "pending_actions": {
-                "tool_name": tool_call['name'],
-                "tool_args": expenses_to_log
+        
+        # --- MODIFIED: Handle multiple tools ---
+        
+        # Logic for create_expenses tool
+        if tool_call['name'] == 'create_expenses':
+            if not reply_text or reply_text.isspace():
+                message_parts = ["I'm ready to log the following expenses for you:\n"]
+                for expense in tool_args.get('expenses', []):
+                    desc_part = f" (Note: *{expense['description']}*)" if expense.get('description') else ""
+                    message_parts.append(
+                        f"- **{expense['name']}**: ${expense['amount']:.2f} ({expense['type'].capitalize()}){desc_part}"
+                    )
+                message_parts.append("\nIs this correct?")
+                reply_text = "\n".join(message_parts)
+            
+            memory_output_for_ai = f"I have proposed creating {len(tool_args.get('expenses', []))} expenses and am awaiting user confirmation."
+            memory.save_context({"input": user_input}, {"output": memory_output_for_ai})
+            
+            return {
+                "reply": reply_text,
+                "pending_actions": {
+                    "tool_name": tool_call['name'],
+                    "tool_args": tool_args['expenses']
+                }
             }
-        }
+
+        # --- NEW: Logic for edit_expense tool ---
+        if tool_call['name'] == 'edit_expense':
+            if not reply_text or reply_text.isspace():
+                original_name = tool_args.get('original_name')
+                changes = []
+                if 'new_name' in tool_args: changes.append(f"new name to **{tool_args['new_name']}**")
+                if 'new_amount' in tool_args: changes.append(f"amount to **${tool_args['new_amount']:.2f}**")
+                if 'new_type' in tool_args: changes.append(f"category to **{tool_args['new_type'].capitalize()}**")
+                if 'new_description' in tool_args: changes.append(f"description to *'{tool_args['new_description']}'*")
+                
+                reply_text = f"Should I update the expense **'{original_name}'** and change its {', '.join(changes)}? Let me know!"
+
+            memory_output_for_ai = "I have proposed an edit to an expense and am awaiting user confirmation."
+            memory.save_context({"input": user_input}, {"output": memory_output_for_ai})
+
+            return {
+                "reply": reply_text,
+                "pending_actions": {
+                    "tool_name": tool_call['name'],
+                    "tool_args": tool_args
+                }
+            }
+
     else:
         memory.save_context({"input": user_input}, {"output": response.content})
         return {"reply": response.content}

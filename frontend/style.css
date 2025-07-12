@@ -65,7 +65,7 @@ body { font-family: var(--font-sans); background-color: var(--bg); color: var(--
 @keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-4px); } 40%, 80% { transform: translateX(4px); } }
 
 /* --- Main Layout & Structure --- */
-.app-container { max-width: 1600px; margin: 0 auto; padding: 0 2rem; } /* MODIFIED: Wider max-width */
+.app-container { max-width: 1600px; margin: 0 auto; padding: 0 2rem 2rem; } /* MODIFIED: Added bottom padding */
 .app-header {
     display: flex;
     justify-content: space-between;
@@ -82,13 +82,12 @@ body { font-family: var(--font-sans); background-color: var(--bg); color: var(--
     display: grid;
     grid-template-columns: 1fr 420px; /* Main content and chat panel */
     gap: 2rem;
-    align-items: flex-start;
 }
 .main-content {
     display: grid;
     grid-template-columns: 420px 1fr;
     gap: 2rem;
-    align-items: flex-start;
+    /* MODIFIED: align-items: flex-start has been removed to allow columns to stretch */
 }
 
 
